@@ -1,0 +1,5 @@
+{
+  "name": "ccupa",
+  "version": "1.0.0",
+  "description": "Development workflow conventions: coding standards, git practices, database patterns, deployment, and slash commands for feature development lifecycle."
+}
