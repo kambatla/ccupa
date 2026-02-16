@@ -12,7 +12,8 @@ Run full test suites, code quality checks, and specialized code reviews in paral
 2. Review all commits on the branch via `git log main..HEAD` and `git diff main...HEAD`
 3. Classify changed files into backend and frontend based on your project structure
 4. Stage only the identified changed files (NOT `git add -A`) so review agents see them without accidentally staging unrelated files
-5. Create tasks for Phase 2 agents, skipping agents for unchanged sides where noted
+5. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section. You will pass these directly to teammates so they can execute immediately without exploring.
+6. Create tasks for Phase 2 agents, skipping agents for unchanged sides where noted
 
 ### Step 2: Parallel Checks (spawn all at once)
 Spawn teammates in a **single message** so they run simultaneously:
@@ -21,15 +22,15 @@ Spawn teammates in a **single message** so they run simultaneously:
 
 | Teammate | Agent Type | Task |
 |----------|-----------|------|
-| `backend-tests` | `backend-test-specialist` | Run the **full** backend test suite per coding-standards. Report pass/fail + failures. Do NOT fix source code. |
-| `frontend-tests` | `frontend-test-specialist` | Run the **full** frontend test suite per coding-standards. Report pass/fail + failures. Do NOT fix source code. |
+| `backend-tests` | `general-purpose` | `cd {backend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. |
+| `frontend-tests` | `general-purpose` | `cd {frontend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. |
 
 #### Quality (conditional — may be skippable)
 
 | Teammate | Agent Type | Task | Skip if... |
 |----------|-----------|------|------------|
-| `backend-quality` | `general-purpose` | Run backend quality checks per coding-standards (formatting, linting, type checking). Auto-fix what's possible. Report remaining errors. | No backend changes, **or** `/prep-commit` already ran backend quality in this conversation with no code changes since |
-| `frontend-quality` | `general-purpose` | Run frontend quality checks per coding-standards (linting, build). Auto-fix what's possible. Report remaining errors. | No frontend changes, **or** `/prep-commit` already ran frontend quality in this conversation with no code changes since |
+| `backend-quality` | `general-purpose` | `cd {backend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. formatter, `--fix` flags). Report remaining errors. | No backend changes, **or** `/prep-commit` already ran backend quality in this conversation with no code changes since |
+| `frontend-quality` | `general-purpose` | `cd {frontend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. `--fix` flags). Report remaining errors. | No frontend changes, **or** `/prep-commit` already ran frontend quality in this conversation with no code changes since |
 
 #### Reviews (specialized, parallel with each other and with the above)
 

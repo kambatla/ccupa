@@ -14,7 +14,8 @@ Run tests, code quality checks, and a code review in parallel using a team of ag
 4. Detect if this is a bug fix: `$ARGUMENTS` contains `--bugfix` or branch name starts with `bug-`
 5. If bug fix -> run Step 1.5 before proceeding
 6. Stage only the identified changed files (NOT `git add -A`) so review agents see them without accidentally staging unrelated files
-7. Create tasks for Phase 2 agents (see below), skipping tasks for unchanged sides
+7. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section. You will pass these directly to teammates so they can execute immediately without exploring.
+8. Create tasks for Phase 2 agents (see below), skipping tasks for unchanged sides
 
 ### Step 1.5: Bug Fix Verification (only for bug fixes)
 Prove the fix actually fixes something by showing the test fails without it and passes with it.
@@ -38,10 +39,10 @@ Spawn teammates in a **single message** so they run simultaneously:
 
 | Teammate | Agent Type | Task | Skip if... |
 |----------|-----------|------|------------|
-| `backend-tests` | `backend-test-specialist` | Run only test files that match changed source files. Report pass/fail + failures. Do NOT fix source code. | No backend changes |
-| `frontend-tests` | `frontend-test-specialist` | Run only test files that match changed source files. Report pass/fail + failures. Do NOT fix source code. | No frontend changes |
-| `backend-quality` | `general-purpose` | Run backend quality checks per coding-standards (formatting, linting, type checking). Auto-fix what's possible. Report remaining errors. | No backend changes |
-| `frontend-quality` | `general-purpose` | Run frontend quality checks per coding-standards (linting, build). Auto-fix what's possible. Report remaining errors. | No frontend changes |
+| `backend-tests` | `general-purpose` | `cd {backend dir} && {exact test command for changed files}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No backend changes |
+| `frontend-tests` | `general-purpose` | `cd {frontend dir} && {exact test command for changed files}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No frontend changes |
+| `backend-quality` | `general-purpose` | `cd {backend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. formatter, `--fix` flags). Report remaining errors. | No backend changes |
+| `frontend-quality` | `general-purpose` | `cd {frontend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. `--fix` flags). Report remaining errors. | No frontend changes |
 | `reviewer` | `general-purpose` | Review `git diff --cached` with fresh eyes. Look for bugs, logic errors, security issues, missing edge cases. Provide specific, actionable findings. Do NOT fix code. | Never skip |
 
 **Why parallel?** These are independent workstreams. Tests are read-only. Quality auto-fixes touch different file sets. The reviewer uses `git diff --cached` which reads from the stable git index.
