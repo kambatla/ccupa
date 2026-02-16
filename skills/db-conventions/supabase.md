@@ -219,93 +219,10 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
-## RPC Wrapper Pattern (Python)
-
-The `SupabaseRPC` wrapper automatically maps `result_*` fields to clean names:
-
-```
-result_id → id
-result_name → name
-result_status → status
-```
-
-### Choosing the Right Method
-
-| Function Returns | RPC Method | Python Returns |
-|-----------------|------------|----------------|
-| Scalar (INTEGER, BOOLEAN, VARCHAR) | `rpc.call()` | Primitive value |
-| TABLE, single row | `rpc.call_single()` | Dict or None |
-| TABLE, multiple rows | `rpc.call_list()` | List of dicts |
-
-### Usage Examples
-
-```python
-from src.database_rpc import SupabaseRPC
-
-# Single record
-rpc = SupabaseRPC(supabase, "get_item_by_id_rpc")
-item = rpc.call_single(p_item_id=123, p_organization_id=1)
-# Returns: {'id': 123, 'name': 'Widget', ...} or None
-
-# Multiple records
-rpc = SupabaseRPC(supabase, "get_items_by_organization_rpc")
-items = rpc.call_list(p_organization_id=1)
-# Returns: [{'id': 1, ...}, {'id': 2, ...}]
-
-# Scalar
-rpc = SupabaseRPC(supabase, "delete_items_by_date_range_rpc")
-count = rpc.call(p_organization_id=1, p_start_date='2025-01-01', p_end_date='2025-01-31')
-# Returns: 45
-```
-
-### Error Handling Patterns
-
-```python
-def get_item_or_raise(supabase, item_id: int, organization_id: int) -> dict:
-    rpc = SupabaseRPC(supabase, "get_item_by_id_rpc")
-    item = rpc.call_single(p_item_id=item_id, p_organization_id=organization_id)
-    if item is None:
-        raise ItemNotFoundError(f"Item {item_id} not found")
-    return item
-```
-
-### Integration with FastAPI
-
-```python
-@app.get("/items/{item_id}")
-async def get_item_endpoint(
-    item_id: int,
-    current_user: dict = Depends(get_current_user)
-):
-    organization_id = current_user['organization_id']
-    rpc = SupabaseRPC(get_supabase(), "get_item_by_id_rpc")
-    item = rpc.call_single(p_item_id=item_id, p_organization_id=organization_id)
-
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return item
-```
-
 ## Performance Considerations
 
-```python
-# BAD: N+1 query problem
-items = get_all_items(supabase, org_id)
-for item in items:
-    details = get_item_details(supabase, item['id'])  # N queries!
-
-# GOOD: Single query with JOIN
-items_with_details = get_items_with_details(supabase, org_id)  # 1 query
-```
-
-```python
-# BAD: Individual inserts
-for item in items_to_create:
-    create_item(supabase, **item)
-
-# GOOD: Bulk insert
-create_items_bulk(supabase, organization_id, items_to_create)
-```
+- Avoid N+1 queries — use JOINs or batch queries instead of looping with individual calls
+- Use bulk operations (e.g., `UNNEST`) for batch inserts instead of individual inserts in a loop
 
 ## Changing a Function's Return Type
 

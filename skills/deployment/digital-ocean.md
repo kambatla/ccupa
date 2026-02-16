@@ -7,7 +7,7 @@ Patterns for deploying a web application to a Digital Ocean Droplet with Nginx, 
 | Component | Platform | Details |
 |-----------|----------|---------|
 | Server | DO Droplet | Ubuntu 22.04 LTS |
-| Database | Managed (e.g., Supabase Cloud) | Hosted PostgreSQL |
+| Database | Managed PostgreSQL | Hosted externally |
 | Web Server | Nginx | Reverse proxy + static files |
 | Process Manager | systemd | Service management |
 
@@ -135,7 +135,7 @@ cd ..
 cp .env.production .env
 
 # 5. Smoke test
-python -c "from src.api import app; print('Import OK')"
+python -c "from your_app.main import app; print('Import OK')"
 
 # 6. Restart services
 sudo systemctl restart your-app-api
@@ -168,19 +168,15 @@ Certbot automatically:
 ```bash
 # .env.production (backend)
 DATABASE_URL=postgresql://user:pass@host:port/db
-SUPABASE_URL=https://your-ref.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-key
+SECRET_KEY=your-secret-key
 ENVIRONMENT=production
 API_HOST=0.0.0.0
 API_PORT=8000
-ALLOWED_ORIGINS=*
+ALLOWED_ORIGINS=https://your-domain.com
 LOG_LEVEL=INFO
 
 # frontend/.env.production
 VITE_API_URL=https://your-domain.com/api
-VITE_SUPABASE_URL=https://your-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 **Rules:**
