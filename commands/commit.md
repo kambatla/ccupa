@@ -8,6 +8,12 @@ Run this entire workflow as a separate Task agent (use Haiku — it's a straight
 ## Input
 "$ARGUMENTS" - Optional context about what was changed.
 
+## Required Permissions
+For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
+- `Bash(git *)`
+
+Note: `/prep-commit` (called in Step 1 if not already run) handles its own permission preflight.
+
 ## Process
 
 1. **Check if `/prep-commit` was already run** in this conversation:

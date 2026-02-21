@@ -8,13 +8,14 @@ Run tests, code quality checks, and a code review in parallel using agents, then
 ## Process
 
 ### Step 1: Setup
-1. Identify changed files via `git diff --name-only` (staged + unstaged vs HEAD)
+1. Identify changed files via `git diff --name-only` (staged + unstaged vs HEAD) and new untracked files via `git ls-files --others --exclude-standard`
 2. Classify changes into backend and frontend based on your project structure
-3. Detect if this is a bug fix: `$ARGUMENTS` contains `--bugfix` or branch name starts with `bug-`
-4. If bug fix -> run Step 1.5 before proceeding
-5. Stage only the identified changed files (NOT `git add -A`) so review agents see them without accidentally staging unrelated files
-6. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section. You will pass these directly to agents so they can execute immediately without exploring.
-7. Check `which codex` to determine if Codex CLI is installed. If not, skip the `codex-review` agent in Step 2.
+3. Stage only the identified changed files (NOT `git add -A`) so review agents see them without accidentally staging unrelated files
+4. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section. You will pass these directly to agents so they can execute immediately without exploring.
+5. Check `which codex` to determine if Codex CLI is installed. If not, skip the `codex-review` agent in Step 2.
+6. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 4.
+7. Detect if this is a bug fix: `$ARGUMENTS` contains `--bugfix` or branch name starts with `bug-`
+8. If bug fix -> run Step 1.5 before proceeding
 
 ### Step 1.5: Bug Fix Verification (only for bug fixes)
 Prove the fix actually fixes something by showing the test fails without it and passes with it.

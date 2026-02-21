@@ -8,6 +8,11 @@ Run this entire workflow as a separate Task agent (use Haiku — it's a straight
 ## Input
 "$ARGUMENTS" - Optional context about the PR.
 
+## Required Permissions
+For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
+- `Bash(git *)`
+- `Bash(gh *)`
+
 ## Process
 
 1. **Check if `/prep-merge-pr` was already run** in this conversation:

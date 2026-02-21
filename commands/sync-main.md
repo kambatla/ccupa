@@ -5,6 +5,10 @@ Sync main branch with origin and delete merged feature branches.
 ## Input
 "$ARGUMENTS" - Not used.
 
+## Required Permissions
+For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
+- `Bash(git *)`
+
 ## Execution
 Run this entire workflow as a separate Task agent (use Haiku — it's a straightforward git workflow).
 

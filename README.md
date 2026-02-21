@@ -26,16 +26,21 @@ Use agents to (a) reduce context usage of the main session and (b) limit confirm
 
 Reduce wall-clock time by running independent workstreams simultaneously.
 
-- `/prep-commit` spawns up to **5 parallel agents**: backend tests, frontend tests, backend quality, frontend quality, and a code reviewer
-- `/prep-merge-pr` spawns up to **7 parallel agents**: 2 test runners + 2 quality checkers + 3 specialized reviewers
+- `/prep-commit` spawns up to **6 parallel agents**: backend tests, frontend tests, backend quality, frontend quality, code reviewer, and Codex reviewer
+- `/prep-merge-pr` spawns up to **8 parallel agents**: 2 test runners + 2 quality checkers + 3 specialized reviewers + Codex reviewer
 - `/implement` spawns up to **3 parallel agents** (DB, backend, frontend) for features with independent layers
 
 Conditional skipping avoids wasted work: quality agents are skipped if `/prep-commit` already ran them with no code changes since; the security reviewer only spawns when changes touch auth, API, DB, or user input handling; test/quality agents are skipped entirely for unchanged sides.
+
+### Unattended execution
+
+Agents that spawn sub-agents need tool permissions pre-configured in `.claude/settings.local.json` — otherwise they block waiting for user approval. The permissions skill handles this: `/setup` bootstraps permissions during onboarding and preflight checks run before every agent-heavy command. `/learn` reflects on the full session — including scanning for patterns approved at runtime — and proposes improvements to permissions, conventions, and workflows.
 
 ## Workflow commands
 
 | Command | Purpose |
 |---------|---------|
+| `/setup` | Onboard a project: configure permissions, bootstrap settings |
 | `/brainstorm` | Explore problem space, challenge assumptions, recommend direction |
 | `/design` | Architect layer-by-layer (storage → backend → frontend), define test cases |
 | `/implement` | Execute plan — sequential or parallel agents, define → test → implement order |
@@ -47,6 +52,7 @@ Conditional skipping avoids wasted work: quality agents are skipped if `/prep-co
 | `/merge` | Rebase on main, run `/prep-merge-pr`, merge, clean up |
 | `/sync-main` | Pull latest main, delete merged local branches |
 | `/push` | Push main to all configured remotes |
+| `/learn` | Session reflection: review permissions, corrections, patterns; propose improvements |
 
 ## Convention skills
 
@@ -56,6 +62,7 @@ Conditional skipping avoids wasted work: quality agents are skipped if `/prep-co
 | **db-conventions** | Migration-first workflow, RPC functions, Supabase patterns |
 | **git-conventions** | Commit format, branch naming, PR structure |
 | **deployment** | Local dev setup and Digital Ocean production deployment |
+| **permissions** | Preflight checks before agents, post-session review of runtime approvals |
 
 ## Installation
 

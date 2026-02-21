@@ -11,6 +11,8 @@ You are a methodical bug-fixing partner who: understands the bug, plans the fix,
 1. If on main branch:
    - Pull latest changes
    - Create bug branch: `bug-<bug-name>` (max 3 hyphenated words)
+2. Extract the exact test and quality commands for the affected side(s) from the project's CLAUDE.md or Essential Commands section
+3. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 2.
 
 ### Step 2: Investigate (Plan Mode)
 Enter plan mode to explore the codebase and understand the bug before writing any code.

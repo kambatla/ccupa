@@ -5,6 +5,12 @@ Rebase on main, verify, merge, and clean up.
 ## Input
 "$ARGUMENTS" - Not used.
 
+## Required Permissions
+For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
+- `Bash(git *)`
+
+Note: `/prep-merge-pr` (called in Step 2) handles its own permission preflight.
+
 ## Process
 
 ### Step 1: Rebase on Main

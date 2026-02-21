@@ -17,6 +17,7 @@ skills/                        # Skill definitions (invoked automatically by con
   db-conventions/              # SKILL.md routes to supabase.md
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
   git-conventions/             # SKILL.md (single file, no sub-routes)
+  permissions/                 # SKILL.md routes to preflight.md and review.md
 commands/                      # Slash commands (user-invoked workflows)
 ```
 
@@ -28,6 +29,7 @@ commands/                      # Slash commands (user-invoked workflows)
 
 The commands form a feature development pipeline:
 
+0. `/setup` — Onboard a consuming project: configure permissions, bootstrap settings
 1. `/brainstorm` — Explore problem space, challenge assumptions, recommend direction
 2. `/design` — Architect layer-by-layer (storage → backend → frontend), define test cases during design, Codex design review
 3. `/implement` — Execute the plan (sequential or parallel with agent teams), follows define→test→implement order
@@ -39,6 +41,7 @@ The commands form a feature development pipeline:
 9. `/merge` — Rebase on main, run `/prep-merge-pr`, merge, delete branch
 10. `/sync-main` — Pull latest main, delete merged local branches
 11. `/push` — Push main to all configured remotes
+12. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
 
 ## Key Conventions Defined by This Plugin
 
@@ -49,6 +52,7 @@ These are the standards this plugin enforces in consuming projects:
 - **React/TypeScript**: `React.FC<Props>`, Context+Hook state pattern, semantic Tailwind tokens (no hardcoded colors), shared UI components, Vitest + RTL with `userEvent`
 - **Database**: Migration-first workflow (never `db reset`), RPC functions with `_rpc` suffix, `p_*` params, `result_*` returns, organization scoping for multi-tenancy
 - **Testing**: 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
+- **Permissions**: Preflight checks before spawning agents, post-session review of runtime-approved patterns, `/setup` for initial configuration
 
 ## Agent Model Selection
 
@@ -56,9 +60,9 @@ When spawning agents, match the model to the task complexity:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | `/brainstorm`, `/design`, plan mode, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
+| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
 | **Sonnet** | `/implement` teammates, `fixer` agents (addressing broken tests, review findings) |
-| **Haiku** | Test runners, quality/formatting checks, git workflows (`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`), `codex-review` agent wrappers |
+| **Haiku** | Test runners, quality/formatting checks, git workflows (`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`), `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents via Codex CLI (no `-m` flag needed) |
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.
