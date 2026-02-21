@@ -54,22 +54,23 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Re-stage changes: `git add -u` (captures quality auto-fixes without pulling in unrelated untracked files)
 2. Collect results from every agent
-3. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
+3. Deduplicate findings — reviewer and codex-review may flag the same issue from different angles. **Track which reviewers had findings separately** (needed to decide which to re-run in the loop).
+4. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
 
 **Loop** (max 4 iterations):
 
-4. Spawn a single Sonnet agent (`fixer`) with all findings from the most recent check run:
+5. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
    - Test failures, quality errors, and review issues
    - Instruct: fix all issues. If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
-5. After fixer completes, check for changes via `git diff && git diff --cached` and `git ls-files --others --exclude-standard` (the latter catches new files the fixer may have created):
+6. After fixer completes, check for changes via `git diff && git diff --cached` and `git ls-files --others --exclude-standard` (the latter catches new files the fixer may have created):
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
-6. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
-7. Re-run only the checks that failed in the **most recent** iteration:
-   - Tests and quality agents: re-run if they reported failures
+7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
+8. Re-run only the checks that failed in the **most recent** iteration:
+   - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
    - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
-8. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
-9. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
-10. Otherwise -> next iteration (loop back to item 4 above with the new findings)
+9. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
+10. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
+11. Otherwise -> next iteration (loop back to item 5 above with the new findings)
 
 ### Step 4: Report
 1. Report readiness:

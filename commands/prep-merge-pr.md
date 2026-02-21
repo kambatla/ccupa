@@ -66,7 +66,7 @@ After **all** agents complete:
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
 7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
 8. Re-run only the checks that failed in the **most recent** iteration:
-   - Tests and quality agents: re-run if they reported failures
+   - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
    - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
 9. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
 10. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**

@@ -41,10 +41,9 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 After all agents complete:
 1. Review cross-layer integration (do API responses match what frontend expects? do migrations match what backend queries?)
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
-3. Run full test suite across all layers
-4. Run `/prep-commit` to verify all checks pass
-5. Commit sequentially by layer: DB -> backend -> frontend
-6. Shut down team
+3. Run `/prep-commit` to verify all checks pass
+4. Commit all changes
+5. Shut down team
 
 ### Step 2b: Sequential Implementation (smaller features)
 For each implementation plan phase, follow **define -> test -> implement** order:
