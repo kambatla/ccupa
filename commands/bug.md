@@ -51,6 +51,7 @@ Write the test **before** implementing the fix.
 1. Run `/prep-commit --bugfix` to verify all tests, quality checks, and code review pass
 2. Address any issues found
 3. Commit with format: `bug: <short-description>`
+4. Run `/prep-merge-pr` to verify the branch is ready for PR
 
 ## Approach
 - Be direct and intellectually honest

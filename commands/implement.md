@@ -42,8 +42,9 @@ After all agents complete:
 1. Review cross-layer integration (do API responses match what frontend expects? do migrations match what backend queries?)
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run full test suite across all layers
-4. Commit sequentially by layer: DB -> backend -> frontend
-5. Shut down team
+4. Run `/prep-commit` to verify all checks pass
+5. Commit sequentially by layer: DB -> backend -> frontend
+6. Shut down team
 
 ### Step 2b: Sequential Implementation (smaller features)
 For each implementation plan phase, follow **define -> test -> implement** order:
@@ -52,7 +53,8 @@ For each implementation plan phase, follow **define -> test -> implement** order
 3. Implement the logic to make tests pass
 4. Run relevant tests and fix failures
 5. Mark phase tasks complete in plan
-6. Commit with format: `<type>: <short-phase-description>`
+6. Run `/prep-commit` to verify all checks pass
+7. Commit with format: `<type>: <short-phase-description>`
 
 **Why define -> test -> implement?** Writing tests after implementation biases them toward verifying "how it was written" rather than "what it should do." Defining interfaces first gives tests something to compile against without implementation details to anchor on.
 
@@ -62,7 +64,7 @@ After all implementation (parallel or sequential):
    - Ensure schema files reflect any database changes
    - Clean up migration scripts if used
    - Update docs if needed
-2. Run and fix all tests, lint, and type checks
+2. Run `/prep-merge-pr` to verify the branch is ready for PR
 
 ### Step 4: Manual Test
 1. Restart backend/frontend as needed
