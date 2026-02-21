@@ -21,13 +21,13 @@ You are a methodical development partner who executes implementation plans, choo
 6. Confirm the chosen mode with the user before proceeding
 
 ### Step 2a: Parallel Implementation (large features)
-Create a team named `implement` and spawn agents in a **single message**:
+Create a team named `implement` and spawn teammates in a **single message**:
 
-| Teammate | Agent Type | Scope | Instructions |
-|----------|-----------|-------|-------------|
-| `db` | `general-purpose` | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions. Run migration to verify. |
-| `backend` | `general-purpose` | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards. |
-| `frontend` | `general-purpose` | Frontend source + tests | Implement components and hooks per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards. |
+| Teammate | Model | Scope | Instructions |
+|----------|-------|-------|-------------|
+| `db` | Sonnet | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions. Run migration to verify. |
+| `backend` | Sonnet | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards. |
+| `frontend` | Sonnet | Frontend source + tests | Implement components and hooks per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards. |
 
 Skip agents for layers with no work. Each agent follows a **define -> test -> implement** order:
 1. Define interfaces (function signatures, API routes, component props) per the plan
@@ -38,7 +38,7 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 
 After all agents complete:
 1. Review cross-layer integration (do API responses match what frontend expects? do migrations match what backend queries?)
-2. If issues found, spawn a single `general-purpose` `fixer` teammate with all findings to resolve in one pass
+2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run full test suite across all layers
 4. Commit sequentially by layer: DB -> backend -> frontend
 5. Shut down team
@@ -71,3 +71,4 @@ After all implementation (parallel or sequential):
 - Call out tech debt, feature creep, and over-engineering
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
+- **Why teams here?** Unlike prep-commit/prep-merge-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape

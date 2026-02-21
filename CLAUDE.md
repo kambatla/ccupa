@@ -29,12 +29,12 @@ commands/                      # Slash commands (user-invoked workflows)
 The commands form a feature development pipeline:
 
 1. `/brainstorm` — Explore problem space, challenge assumptions, recommend direction
-2. `/design` — Architect layer-by-layer (storage → backend → frontend), define test cases during design
+2. `/design` — Architect layer-by-layer (storage → backend → frontend), define test cases during design, Codex design review
 3. `/implement` — Execute the plan (sequential or parallel with agent teams), follows define→test→implement order
 4. `/bug` — Investigate, write regression test (must fail first), fix, prove fix works
-5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review; fix issues
+5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review + Codex review; fix issues
 6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC
-7. `/prep-merge-pr` — Full test suites, quality checks, 3 specialized reviews (correctness, quality, security); fix issues
+7. `/prep-merge-pr` — Full test suites, quality checks, 3 specialized reviews (correctness, quality, security) + Codex review; fix issues
 8. `/pr` — Push branch, create PR via `gh` with structured body
 9. `/merge` — Rebase on main, run `/prep-merge-pr`, merge, delete branch
 10. `/sync-main` — Pull latest main, delete merged local branches
@@ -50,6 +50,19 @@ These are the standards this plugin enforces in consuming projects:
 - **Database**: Migration-first workflow (never `db reset`), RPC functions with `_rpc` suffix, `p_*` params, `result_*` returns, organization scoping for multi-tenancy
 - **Testing**: 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
 
+## Agent Model Selection
+
+When spawning agents, match the model to the task complexity:
+
+| Model | Use for |
+|-------|---------|
+| **Opus** | `/brainstorm`, `/design`, plan mode, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
+| **Sonnet** | `/implement` teammates, `fixer` agents (addressing broken tests, review findings) |
+| **Haiku** | Test runners, quality/formatting checks, git workflows (`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`), `codex-review` agent wrappers |
+| **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents via Codex CLI (no `-m` flag needed) |
+
+**Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.
+
 ## Editing Guidelines
 
 When modifying this plugin:
@@ -57,4 +70,4 @@ When modifying this plugin:
 - Commands are workflow definitions — they specify sequential steps, agent coordination, and skip conditions
 - Each SKILL.md is a router — it should only describe when to use the skill and link to sub-files
 - Commands reference each other (e.g., `/commit` calls `/prep-commit`, `/pr` calls `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
-- Several commands specify agent delegation strategies (Haiku for simple git workflows, parallel teams for prep-commit/prep-merge-pr) — preserve these performance hints
+- Commands specify model choices per the Agent Model Selection table above — preserve these when editing
