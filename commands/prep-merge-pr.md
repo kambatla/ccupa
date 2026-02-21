@@ -50,16 +50,27 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 **Note on review timing:** Reviewers run in parallel with quality agents, so they see pre-fix code. This is acceptable because quality auto-fixes are mechanical (formatting, import sorting) — they don't change logic. Review findings about bugs, security, and edge cases remain valid regardless of formatting changes.
 
-### Step 3: Fix Issues
+### Step 3: Fix-Verify Loop
 After **all** agents complete:
 1. Stage quality auto-fixes if any: `git add -u` (working tree was clean at start, so this only captures quality agent changes)
 2. Collect results from every agent (tests, quality, and all review reports)
-3. Deduplicate review findings — multiple reviewers may flag the same issue from different angles
-4. If all checks passed and reviews found nothing significant -> skip to Step 4
-5. Otherwise, spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings:
+3. Deduplicate review findings for the fixer's input — multiple reviewers may flag the same issue from different angles. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop).
+4. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
+
+**Loop** (max 4 iterations):
+
+5. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
    - Test failures, quality errors, and review issues from all reviewers
-   - Fix everything in one pass to avoid conflicting edits
-6. After fixer completes, re-stage and re-run **once** only the checks that had failures. If re-verification still fails, report remaining failures to the user and stop — do not loop.
+   - Instruct: fix all issues. If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
+6. After fixer completes, check for changes via `git diff && git diff --cached` and `git ls-files --others --exclude-standard` (the latter catches new files the fixer may have created):
+   - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
+7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
+8. Re-run only the checks that failed in the **most recent** iteration:
+   - Tests and quality agents: re-run if they reported failures
+   - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
+9. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
+10. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
+11. Otherwise -> next iteration (loop back to item 5 above with the new findings)
 
 ### Step 4: Report
 1. If there are uncommitted fix changes, commit them using the `/commit` command
@@ -74,6 +85,5 @@ After **all** agents complete:
 - **Conditional agents**: security review only for security-sensitive changes; quality skipped for unchanged sides
 - **Full test suites**: final gate before PR — catches cross-cutting regressions
 - **Deduplicated findings**: merge overlapping issues before passing to the fixer
-- **Single fix pass**: one agent sees all findings to avoid conflicting edits
-- **Re-verify once**: single re-verification pass, then stop — no infinite loops
+- **Fix-verify loop**: fixer sees all findings per iteration, re-runs only failed checks, max 4 iterations. Exits early if fixer makes no code changes (explicit decision not to fix). Prevents infinite loops via hard iteration cap.
 - Don't create the PR — just prepare the branch for a clean merge
