@@ -62,7 +62,7 @@ After **all** agents complete:
 5. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
    - Test failures, quality errors, and review issues from all reviewers
    - Instruct: fix all issues. If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
-6. After fixer completes, check for changes via `git diff && git diff --cached` and `git ls-files --others --exclude-standard` (the latter catches new files the fixer may have created):
+6. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
 7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
 8. Re-run only the checks that failed in the **most recent** iteration:
@@ -80,7 +80,7 @@ After **all** agents complete:
    - Confirmation that full test suites and quality checks pass
 
 ## Approach
-- **Maximum parallelism**: up to 8 agents in Phase 2 (2 tests + 2 quality + 3 reviews + Codex review), fewer if quality is skipped or Codex not installed
+- **Maximum parallelism**: up to 8 agents in Step 2 (2 tests + 2 quality + 3 reviews + Codex review), fewer if quality is skipped or Codex not installed
 - **Specialized reviews**: each reviewer goes deep on one concern instead of shallow on everything
 - **Conditional agents**: security review only for security-sensitive changes; quality skipped for unchanged sides
 - **Full test suites**: final gate before PR — catches cross-cutting regressions
