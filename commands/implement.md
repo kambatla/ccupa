@@ -42,7 +42,7 @@ After all agents complete:
 1. Review cross-layer integration (do API responses match what frontend expects? do migrations match what backend queries?)
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run `/prep-commit` to verify all checks pass
-4. Commit all changes
+4. Commit with format: `<type>: <short-description>`
 5. Shut down team
 
 ### Step 2b: Sequential Implementation (smaller features)

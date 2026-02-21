@@ -49,7 +49,7 @@ Write the test **before** implementing the fix.
 
 ### Step 6: Verify & Commit
 1. Run `/prep-commit --bugfix` to verify all tests, quality checks, and code review pass
-2. Address any issues found
+2. If prep-commit exited with unresolved issues (iteration cap reached), stop and report to user
 3. Commit with format: `bug: <short-description>`
 4. Run `/prep-merge-pr` to verify the branch is ready for PR
 
