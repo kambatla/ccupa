@@ -47,12 +47,14 @@ Claude should invoke this skill when:
 **Types:** (same as branch types, plus `chore` for build/deps/tooling)
 
 **Description Guidelines:**
+- **Describe the actual changes**, not the process — subjects like "Address review findings" or "Fix issues from code review" tell the reader nothing. Instead: "Add email validation, extract shared icons, scope cancel authz check"
 - Focus on **why** not what (code shows what)
 - Use imperative mood: "Add feature" not "Added feature"
 - Start with verb: Add, Update, Fix, Remove, Refactor
 - Be concise but clear (1-2 sentences)
 - No period at end of first line
 - Can add blank line + details if needed
+- When a commit spans multiple themes that can't be split at the file level, use a broader subject that still describes what changed, with a detailed body for specifics
 
 **Examples:**
 
@@ -80,6 +82,8 @@ refactor: Extract item assignment logic into separate service
 Update files                          # Too vague
 feature: add X and also fix Y        # Multiple changes — separate commits
 Fixed the bug where it was broken.    # Not descriptive, wrong tense
+fix: Address review findings          # Describes process, not changes
+fix: Fix issues from code review      # Describes process, not changes
 ```
 
 ## HEREDOC Format for Commits
