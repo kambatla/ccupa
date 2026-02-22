@@ -39,7 +39,7 @@ If a decision at any layer has implications for a previously confirmed layer, su
 
 ### Phase 4: Codex Design Review
 1. Check `which codex`. If not installed, log "Codex design review skipped — codex CLI not installed" and proceed to Next Step.
-2. Run `codex exec --sandbox read-only "Review the implementation plan in tmp/<feature>/implementation-plan.md for architectural issues, missing edge cases, security concerns, scalability problems, over-engineering, and potential technical debt. Provide specific, actionable findings."` and capture the output.
+2. Run the **design review** per codex-review skill (substitute the actual feature path for `<feature>`). Capture the output.
 3. Present Codex's findings to the user.
 4. If findings warrant changes, revise the implementation plan and update the file.
 5. Present the final plan to the user for confirmation before proceeding.

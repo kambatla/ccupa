@@ -42,7 +42,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 | `review-correctness` | Opus | Review `git diff main...HEAD` for **functional correctness**: logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow. Be specific — reference exact lines. Do NOT fix code. | Always |
 | `review-quality` | Opus | Review `git diff main...HEAD` for **code quality**: poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns in the codebase. Be specific — reference exact lines. Do NOT fix code. | Always |
 | `review-security` | Opus | Review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Do NOT fix code. | Changes touch auth, API, DB, or user input handling |
-| `codex-review` | Haiku | Run `codex exec --sandbox read-only "Review the branch changes (git diff main...HEAD) for bugs, logic errors, security issues, missing edge cases, and code quality issues. Provide specific, actionable findings referencing exact lines."` and report the output. Do NOT fix code. | Codex CLI installed (checked in Setup) |
+| `codex-review` | Haiku | Run the **branch changes review** per codex-review skill. Report the output. Do NOT fix code. | Codex CLI installed (checked in Setup) |
 
 **Why 3 reviewers + Codex?** Each Claude reviewer goes deep on one concern instead of shallow on all. Codex provides an independent second-model perspective on the same changes. They all run in parallel so wall-clock time equals one review.
 
