@@ -67,7 +67,7 @@ export const useFeature = () => {
 - RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - `userEvent` over `fireEvent`
 - Test files in `__tests__/` next to source
-- Tests verify intended behavior, not implementation details. If a code change breaks a test, check whether the expected behavior has changed — if not, fix the implementation, don't update the test to match
+- See "Tests Are Contract Verification" in SKILL.md for handling test failures
 
 ## Tooling
 

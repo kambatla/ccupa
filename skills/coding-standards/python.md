@@ -19,10 +19,10 @@ Always use RPC wrappers — never raw SQL in endpoint code. See `db-conventions`
 - Test naming: `test_<what>_<condition>_<expected>`
 - Group related tests in classes
 - Type hints always on function signatures
-- Tests verify intended behavior, not implementation details. If a code change breaks a test, check whether the expected behavior has changed — if not, fix the implementation, don't update the test to match
+- See "Tests Are Contract Verification" in SKILL.md for handling test failures
 
 ## Tooling
 
 - **black** for formatting
 - **ruff** for linting
-- **mypy** for type checking
+- **mypy** in strict mode for type checking — projects should enable `strict = true` in `mypy.ini` or `pyproject.toml`
