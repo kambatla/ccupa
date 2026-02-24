@@ -40,7 +40,7 @@ Review the branch changes (git diff main...HEAD) for bugs, logic errors, securit
 ### Design Review (design)
 
 ```
-Review the implementation plan in tmp/<feature>/implementation-plan.md for architectural issues, missing edge cases, security concerns, scalability problems, over-engineering, and potential technical debt. Provide specific, actionable findings.
+Review the implementation plan in plans/<feature>/implementation-plan.md for architectural issues, missing edge cases, security concerns, scalability problems, over-engineering, and potential technical debt. Provide specific, actionable findings.
 ```
 
 ## Agent Pattern

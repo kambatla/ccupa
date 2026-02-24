@@ -45,7 +45,7 @@ If a decision at any layer has implications for a previously confirmed layer, su
 1. Integrate confirmed layer designs into an end-to-end solution
 2. Create detailed plan with phases and task checklists
 3. Each phase must include a **Test** section listing the test cases confirmed in Phase 2
-4. Write to `tmp/<feature>/implementation-plan.md`
+4. Write to `plans/<feature>/implementation-plan.md`
 
 ### Phase 4: Codex Design Review
 1. Check `which codex`. If not installed, log "Codex design review skipped — codex CLI not installed" and proceed to Next Step.

@@ -10,7 +10,7 @@ You are a methodical development partner who executes implementation plans, choo
 ### Step 1: Prepare
 1. Ensure main branch is synced (run `/sync-main` first if needed)
 2. Create feature branch (max 3 hyphenated words)
-3. Read the implementation plan (from `tmp/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
+3. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
 4. Classify which layers have meaningful work (refer to your project structure for paths):
    - **DB**: Schema changes, migration files, RPC functions
    - **Backend**: API endpoints, business logic, backend tests
@@ -57,15 +57,28 @@ For each implementation plan phase, follow **define -> test -> implement** order
 
 **Why define -> test -> implement?** Writing tests after implementation biases them toward verifying "how it was written" rather than "what it should do." Defining interfaces first gives tests something to compile against without implementation details to anchor on.
 
-### Step 3: Finalize
+### Step 3: Verify Completeness
 After all implementation (parallel or sequential):
+1. Re-read `plans/<feature>/implementation-plan.md`
+2. Walk through every phase, task, and requirement in the plan
+3. For each item, classify as:
+   - **Implemented** — code exists and tests pass
+   - **Deferred** — intentionally postponed (note why)
+   - **Descoped** — removed during implementation (note why)
+   - **Missing** — should have been done but wasn't
+4. Present the verification summary to the user
+5. If any items are **Missing**, ask the user whether to implement now or defer
+6. Implement or defer as directed, then re-verify until no items are Missing
+
+### Step 4: Finalize
 1. Hygiene checks:
    - Ensure schema files reflect any database changes
    - Clean up migration scripts if used
    - Update docs if needed
 2. Run `/prep-merge-pr` to verify the branch is ready for PR
+3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
 
-### Step 4: Manual Test
+### Step 5: Manual Test
 1. Restart backend/frontend as needed
 2. Wait for user feedback and address issues
 
