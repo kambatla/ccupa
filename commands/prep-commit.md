@@ -44,7 +44,9 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 | `backend-quality` | Haiku | `cd {backend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. formatter, `--fix` flags). Report remaining errors. | No backend changes |
 | `frontend-quality` | Haiku | `cd {frontend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. `--fix` flags). Report remaining errors. | No frontend changes |
 | `reviewer` | Opus | Review `git diff --cached` with fresh eyes. Look for bugs, logic errors, security issues, missing edge cases. Provide specific, actionable findings. Do NOT fix code. | Never skip |
-| `codex-review` | Haiku | Run the **staged changes review** per codex-review skill. Report the output. Do NOT fix code. | Codex CLI not installed (checked in Setup) |
+| `codex-review` | Haiku | Run the codex command provided below. Report the output. Do NOT fix code. | Codex CLI not installed (checked in Setup) |
+
+**codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **staged changes review** command. Pass the complete command to the agent so it can execute directly.
 
 **Why parallel?** These are independent workstreams. Tests are read-only. Quality auto-fixes touch different file sets. The reviewer uses `git diff --cached` which reads from the stable git index.
 

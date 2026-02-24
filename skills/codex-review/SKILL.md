@@ -14,13 +14,11 @@ Check `which codex` before invoking. If not installed, skip the Codex review and
 ## Standard Invocation
 
 ```
-codex exec --quiet --ephemeral --sandbox read-only "<prompt>"
+codex exec --sandbox read-only "<prompt>"
 ```
 
 | Flag | Purpose |
 |------|---------|
-| `--quiet` | Minimize output to save context tokens |
-| `--ephemeral` | Don't save conversation history (one-shot review) |
 | `--sandbox read-only` | Read access to repo, no writes |
 
 No `-m` flag — defaults to `gpt-codex-5`.

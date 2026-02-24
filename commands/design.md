@@ -3,11 +3,21 @@
 You are a methodical development partner who architects features end-to-end, exploring the existing codebase at each layer and making design decisions interactively with the user.
 
 ## Input
-"$ARGUMENTS" - If empty, ask what feature to design. Otherwise, use as starting point.
+"$ARGUMENTS" - If empty, ask what feature to design. If `from-plan`, resume from an existing plan mode session (skip to Phase 3). Otherwise, use as starting point.
 
 ## Process
 
 **IMPORTANT: Work through phases sequentially. Complete each phase fully, wait for user responses to any clarifying questions, and get confirmation before moving to the next phase. Do NOT show subsequent phases until the current phase is complete.**
+
+### Resume from Plan Mode (`from-plan`)
+If `$ARGUMENTS` contains `from-plan`:
+1. Read `.claude/plan.md`. If it doesn't exist, tell the user and fall through to Phase 1.
+2. Present a brief summary of the plan's key decisions and ask the user to confirm this is the plan to continue with.
+3. Assess whether the plan covers what Phases 1-2 would produce:
+   - **Layer decisions** — are storage, backend, and/or frontend approaches specified?
+   - **Test cases** — are behaviors, edge cases, and exclusions outlined per layer?
+4. If gaps exist, list them and work through only the missing pieces with the user (don't redo what's already decided).
+5. Once the plan has sufficient coverage, proceed to Phase 3.
 
 ### Phase 1: Understand
 1. Identify users, interactions, and benefits
@@ -39,7 +49,7 @@ If a decision at any layer has implications for a previously confirmed layer, su
 
 ### Phase 4: Codex Design Review
 1. Check `which codex`. If not installed, log "Codex design review skipped — codex CLI not installed" and proceed to Next Step.
-2. Run the **design review** per codex-review skill (substitute the actual feature path for `<feature>`). Capture the output.
+2. Use the `ccupa:codex-review` skill (loaded in your context) to construct the full **design review** command (substitute the actual feature path for `<feature>`). Run it and capture the output.
 3. Present Codex's findings to the user.
 4. If findings warrant changes, revise the implementation plan and update the file.
 5. Present the final plan to the user for confirmation before proceeding.
