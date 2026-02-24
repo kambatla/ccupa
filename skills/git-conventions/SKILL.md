@@ -47,6 +47,9 @@ Claude should invoke this skill when:
 **Types:** (same as branch types, plus `chore` for build/deps/tooling)
 
 **Description Guidelines:**
+
+Commit messages are the primary channel for communicating intent to reviewers. Reviewers read commit history to understand what a branch is trying to accomplish before reviewing code. Vague messages force reviewers to reverse-engineer intent from diffs, making reviews slower and less effective at catching correctness issues.
+
 - **Describe the actual changes**, not the process — subjects like "Address review findings" or "Fix issues from code review" tell the reader nothing. Instead: "Add email validation, extract shared icons, scope cancel authz check"
 - Focus on **why** not what (code shows what)
 - Use imperative mood: "Add feature" not "Added feature"
@@ -84,6 +87,15 @@ feature: add X and also fix Y        # Multiple changes — separate commits
 Fixed the bug where it was broken.    # Not descriptive, wrong tense
 fix: Address review findings          # Describes process, not changes
 fix: Fix issues from code review      # Describes process, not changes
+fix: Fix date handling                # Describes "what" — why was the old behavior wrong?
+```
+
+**Why-focused rewrites:**
+```
+# Before                              # After
+fix: Fix date handling                 fix: Prevent off-by-one day shift in UTC→local conversion
+fix: Address review findings           fix: Add email validation, extract shared icons
+feature: add X and also fix Y         # Split into two commits instead
 ```
 
 ## HEREDOC Format for Commits

@@ -61,8 +61,8 @@ When spawning agents, match the model to the task complexity:
 | Model | Use for |
 |-------|---------|
 | **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
-| **Sonnet** | `/implement` teammates, `fixer` agents (addressing broken tests, review findings) |
-| **Haiku** | Test runners, quality/formatting checks, git workflows (`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`), `codex-review` agent wrappers |
+| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` teammates, `fixer` agents (addressing broken tests, review findings) |
+| **Haiku** | Test runners, quality/formatting checks, git workflows (`/pr`, `/push`, `/sync-main`, `/merge`, `/setup`), `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.
