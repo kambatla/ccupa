@@ -30,5 +30,5 @@ If any checks fail, stop and report — do NOT merge a broken branch.
 
 ### Step 3: Merge and Clean Up
 1. Checkout `main`
-2. Merge the feature branch into `main`
+2. Merge the feature branch into `main` using `--no-ff` (always create a merge commit)
 3. Delete the feature branch
