@@ -15,7 +15,14 @@ Claude should invoke this skill when:
 - Building PR descriptions
 - User asks "how should I structure this commit?" or similar
 
-**Note:** Git operations are straightforward workflows — consider using a simpler model (e.g., Haiku) when delegating these tasks to agents.
+## Agent Model Selection
+
+| Task | Model | Reason |
+|------|-------|--------|
+| Writing commit messages | Sonnet | Requires inferring intent from diffs |
+| Writing PR/merge descriptions | Sonnet | Synthesizes branch narrative across commits |
+| Mechanical git ops (push, rebase, branch delete) | Haiku | Pure command execution |
+| PR creation from pre-written content | Haiku | Mechanical |
 
 ## Branch Naming Convention
 
