@@ -14,7 +14,7 @@ Run full test suites, code quality checks, and specialized code reviews in paral
 ### Step 1: Setup
 1. Review all commits on the branch via `git log main..HEAD` and `git diff main...HEAD`
 2. Classify changed files into backend and frontend based on your project structure
-3. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section. You will pass these directly to agents so they can execute immediately without exploring.
+3. Extract the exact test and quality commands for each side (backend/frontend), and the integration test command (single suite, not split by side), from the project's CLAUDE.md or Essential Commands section. You will pass these directly to agents so they can execute immediately without exploring.
 4. Check `which codex` to determine if Codex CLI is installed. If not, skip the `codex-review` agent in Step 2.
 5. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 3.
 
@@ -23,10 +23,11 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 #### Tests (always run full suites — this is the final gate before PR)
 
-| Agent | Model | Task |
-|-------|-------|------|
-| `backend-tests` | Haiku | `cd {backend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. |
-| `frontend-tests` | Haiku | `cd {frontend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. |
+| Agent | Model | Task | Skip if... |
+|-------|-------|------|------------|
+| `backend-tests` | Haiku | `cd {backend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No backend changes |
+| `frontend-tests` | Haiku | `cd {frontend dir} && {exact test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No frontend changes |
+| `integration-tests` | Haiku | `{exact integration test command}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No integration test command defined in project |
 
 #### Quality (conditional — may be skippable)
 
@@ -48,7 +49,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 **Why 3 reviewers + Codex?** Each Claude reviewer goes deep on one concern instead of shallow on all. Codex provides an independent second-model perspective on the same changes. They all run in parallel so wall-clock time equals one review.
 
-**Why full test suites but conditional quality?** Tests catch cross-cutting regressions that may not be obvious from the diff. Quality tools only have value for the language that actually changed. If `/prep-commit` already ran quality checks and auto-fixed issues (and no code changed since), re-running them is pure waste.
+**Why full test suites but conditional quality?** Tests (unit + integration) catch cross-cutting regressions that may not be obvious from the diff. Integration tests run the full stack and are the strongest signal before merge. Quality tools only have value for the language that actually changed. If `/prep-commit` already ran quality checks and auto-fixed issues (and no code changed since), re-running them is pure waste.
 
 **Note on review timing:** Reviewers run in parallel with quality agents, so they see pre-fix code. This is acceptable because quality auto-fixes are mechanical (formatting, import sorting) — they don't change logic. Review findings about bugs, security, and edge cases remain valid regardless of formatting changes.
 
@@ -82,7 +83,7 @@ After **all** agents complete:
    - Confirmation that full test suites and quality checks pass
 
 ## Approach
-- **Maximum parallelism**: up to 8 agents in Step 2 (2 tests + 2 quality + 3 reviews + Codex review), fewer if quality is skipped or Codex not installed
+- **Maximum parallelism**: up to 9 agents in Step 2 (2 unit tests + 1 integration tests + 2 quality + 3 reviews + Codex review), fewer if quality is skipped, integration tests not configured, or Codex not installed
 - **Specialized reviews**: each reviewer goes deep on one concern instead of shallow on everything
 - **Conditional agents**: security review only for security-sensitive changes; quality skipped for unchanged sides
 - **Full test suites**: final gate before PR — catches cross-cutting regressions
