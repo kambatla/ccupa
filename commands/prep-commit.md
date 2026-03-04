@@ -2,6 +2,9 @@
 
 Run tests, code quality checks, and a code review in parallel using agents, then fix issues and verify.
 
+## Execution
+Run this entire workflow as a separate Task agent (use Opus — synthesizing multi-reviewer findings and coordinating the fix-verify loop requires deep judgment).
+
 ## Input
 "$ARGUMENTS" - Optional context about what was changed in the branch. Include `--bugfix` to trigger bug fix verification (stash/test fail/unstash/test pass).
 
@@ -62,9 +65,7 @@ After **all** agents complete:
 
 **Loop** (max 4 iterations):
 
-6. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
-   - Test failures, quality errors, and review issues (with global IDs)
-   - Instruct: fix all issues. For each finding, report disposition per `ccupa:review-tracking` skill (ACTED or DISMISSED with reason). If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
+6. Spawn and brief the fixer per `ccupa:review-resolver` skill, passing the **combined, deduplicated** findings from the most recent check run (test failures, quality errors, review issues with global IDs).
 7. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
 8. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)

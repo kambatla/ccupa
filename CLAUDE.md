@@ -18,6 +18,9 @@ skills/                        # Skill definitions (invoked automatically by con
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
   git-conventions/             # SKILL.md (single file, no sub-routes)
   permissions/                 # SKILL.md routes to preflight.md and review.md
+  codex-review/                # SKILL.md (single file, no sub-routes)
+  review-tracking/             # SKILL.md (single file, no sub-routes)
+  review-resolver/             # SKILL.md (single file, no sub-routes)
 commands/                      # Slash commands (user-invoked workflows)
 ```
 
@@ -60,9 +63,9 @@ When spawning agents, match the model to the task complexity:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
-| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` teammates, `fixer` agents (addressing broken tests, review findings) |
-| **Haiku** | Test runners, quality/formatting checks, git workflows (`/pr`, `/push`, `/sync-main`, `/merge`, `/setup`), `codex-review` agent wrappers |
+| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, `/prep-commit` and `/prep-merge-pr` orchestrators, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
+| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` (orchestrator + implementation teammates), `review-resolver` fixer agents |
+| **Haiku** | Test runners, quality/formatting checks, git workflows (`/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/review-roi`), `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.

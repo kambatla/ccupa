@@ -1,8 +1,9 @@
 # Merge Branch to Main
 
-**Model: Haiku** — mechanical git orchestration. Model selection for checks and reviews is handled by `/prep-merge-pr`.
-
 Rebase on main, verify, merge, and clean up.
+
+## Execution
+Run this entire workflow as a separate Task agent (use Haiku — mechanical git orchestration; model selection for checks and reviews is handled by `/prep-merge-pr`).
 
 ## Input
 "$ARGUMENTS" - Not used.

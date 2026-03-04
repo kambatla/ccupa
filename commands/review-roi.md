@@ -1,8 +1,9 @@
 # Review ROI
 
-**Model: Haiku** — reading a CSV and computing aggregates is mechanical.
-
 Analyze `~/.claude/review-ledger.csv` to surface which reviewers are earning their cost.
+
+## Execution
+Run this entire workflow as a separate Task agent (use Haiku — reading a CSV and computing aggregates is mechanical).
 
 ## Input
 "$ARGUMENTS" - Optional project name to filter results. If empty, report across all projects.

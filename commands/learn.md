@@ -1,9 +1,8 @@
 # Session Learn
 
-Reflect on the current session and propose improvements to permissions, conventions, and workflows.
+**Model: Opus** — reasoning about session patterns and proposing convention changes requires deep judgment.
 
-## Execution
-Use Opus — this requires reasoning about patterns and proposing convention changes.
+Reflect on the current session and propose improvements to permissions, conventions, and workflows.
 
 ## Input
 "$ARGUMENTS" - Optional focus area (e.g., "permissions", "testing patterns").
