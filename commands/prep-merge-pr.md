@@ -40,10 +40,10 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 | Agent | Model | Task | When to spawn |
 |-------|-------|------|---------------|
-| `review-correctness` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **functional correctness**: logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, and changes that don't align with stated intent in commit messages. Be specific — reference exact lines. Do NOT fix code. | Always |
-| `review-quality` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **code quality**: poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns in the codebase, and commits that bundle unrelated concerns. Be specific — reference exact lines. Do NOT fix code. | Always |
-| `review-security` | Opus | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Do NOT fix code. | Changes touch auth, API, DB, or user input handling |
-| `codex-review` | Haiku | Run the codex command provided below. Report the output. Do NOT fix code. | Codex CLI installed (checked in Setup) |
+| `review-correctness` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **functional correctness**: logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, and changes that don't align with stated intent in commit messages. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
+| `review-quality` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **code quality**: poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns in the codebase, and commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
+| `review-security` | Opus | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Changes touch auth, API, DB, or user input handling |
+| `codex-review` | Haiku | Run the codex command provided below. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code. | Codex CLI installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **branch changes review** command. Pass the complete command to the agent so it can execute directly.
 
@@ -57,23 +57,31 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Stage quality auto-fixes if any: `git add -u` (working tree was clean at start, so this only captures quality agent changes)
 2. Collect results from every agent (tests, quality, and all review reports)
-3. Deduplicate review findings for the fixer's input — multiple reviewers may flag the same issue from different angles. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop).
-4. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
+3. Deduplicate review findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop, and to write the ledger).
+4. **Record initial findings** for the ledger: save per-reviewer counts (total_findings, unique_finds) now — before any fixes. These counts do not change in subsequent iterations.
+5. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
 
 **Loop** (max 4 iterations):
 
-5. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
-   - Test failures, quality errors, and review issues from all reviewers
-   - Instruct: fix all issues. If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
-6. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
+6. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
+   - Test failures, quality errors, and review issues from all reviewers (with global IDs)
+   - Instruct: fix all issues. For each finding, report disposition per `ccupa:review-tracking` skill (ACTED or DISMISSED with reason). If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
+7. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
-7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
-8. Re-run only the checks that failed in the **most recent** iteration:
+8. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
+9. Re-run only the checks that failed in the **most recent** iteration:
    - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
    - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
-9. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
-10. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
-11. Otherwise -> next iteration (loop back to item 5 above with the new findings)
+10. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
+11. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
+12. Otherwise -> next iteration (loop back to item 6 above with the new findings)
+
+### Step 3.5: Write Review Ledger
+After the loop exits (regardless of outcome):
+1. Collect fixer attribution from all iterations (ACTED/DISMISSED per global finding ID)
+2. Compute per-reviewer: `actioned` and `dismissed` counts from the attribution report
+3. Append one row per reviewer to `~/.claude/review-ledger.csv` per `ccupa:review-tracking` skill
+4. Skip reviewers that were not spawned this run
 
 ### Step 4: Report
 1. If there are uncommitted fix changes, commit them using the `/commit` command

@@ -43,8 +43,8 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 | `frontend-tests` | Haiku | `cd {frontend dir} && {exact test command for changed files}`. Run this command. Report pass/fail + failures. Do NOT fix source code. | No frontend changes |
 | `backend-quality` | Haiku | `cd {backend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. formatter, `--fix` flags). Report remaining errors. | No backend changes |
 | `frontend-quality` | Haiku | `cd {frontend dir} && {exact quality commands}`. Run these commands. Auto-fix what's possible (e.g. `--fix` flags). Report remaining errors. | No frontend changes |
-| `reviewer` | Opus | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Provide specific, actionable findings. Do NOT fix code. | Never skip |
-| `codex-review` | Haiku | Run the codex command provided below. Report the output. Do NOT fix code. | Codex CLI not installed (checked in Setup) |
+| `reviewer` | Opus | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Never skip |
+| `codex-review` | Haiku | Run the codex command provided below. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code. | Codex CLI not installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **staged changes review** command. Pass the complete command to the agent so it can execute directly.
 
@@ -56,23 +56,31 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Re-stage changes: `git add -u` (captures quality auto-fixes without pulling in unrelated untracked files)
 2. Collect results from every agent
-3. Deduplicate findings — reviewer and codex-review may flag the same issue from different angles. **Track which reviewers had findings separately** (needed to decide which to re-run in the loop).
-4. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
+3. Deduplicate findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which to re-run in the loop, and to write the ledger).
+4. **Record initial findings** for the ledger: save per-reviewer counts (total_findings, unique_finds) now — before any fixes. These counts do not change in subsequent iterations.
+5. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
 
 **Loop** (max 4 iterations):
 
-5. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
-   - Test failures, quality errors, and review issues
-   - Instruct: fix all issues. If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
-6. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
+6. Spawn a single Sonnet agent (`fixer`) with the **combined, deduplicated** findings from the most recent check run:
+   - Test failures, quality errors, and review issues (with global IDs)
+   - Instruct: fix all issues. For each finding, report disposition per `ccupa:review-tracking` skill (ACTED or DISMISSED with reason). If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.
+7. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
    - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
-7. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
-8. Re-run only the checks that failed in the **most recent** iteration:
+8. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
+9. Re-run only the checks that failed in the **most recent** iteration:
    - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
    - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
-9. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
-10. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
-11. Otherwise -> next iteration (loop back to item 5 above with the new findings)
+10. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
+11. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
+12. Otherwise -> next iteration (loop back to item 6 above with the new findings)
+
+### Step 3.5: Write Review Ledger
+After the loop exits (regardless of outcome):
+1. Collect fixer attribution from all iterations (ACTED/DISMISSED per global finding ID)
+2. Compute per-reviewer: `actioned` and `dismissed` counts from the attribution report
+3. Append one row per reviewer to `~/.claude/review-ledger.csv` per `ccupa:review-tracking` skill
+4. Skip reviewers that were not spawned this run
 
 ### Step 4: Report
 1. Report readiness:
