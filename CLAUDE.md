@@ -70,6 +70,10 @@ When spawning agents, match the model to the task complexity:
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.
 
+## Issue Tracking
+
+Issues are tracked on GitHub: https://github.com/kambatla/ccupa/issues
+
 ## Editing Guidelines
 
 When modifying this plugin:
