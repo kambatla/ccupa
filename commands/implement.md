@@ -17,7 +17,7 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 2. Create feature branch (max 3 hyphenated words)
 3. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
 4. Classify which layers have meaningful work (refer to your project structure for paths):
-   - **DB**: Schema changes, migration files, RPC functions
+   - **DB**: Schema changes, migration files, database functions
    - **Backend**: API endpoints, business logic, backend tests
    - **Frontend**: Components, hooks, UI, frontend tests
 5. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
@@ -34,7 +34,7 @@ Create a team named `implement` and spawn teammates in a **single message**:
 |----------|-------|-------|-------------|
 | `db` | Sonnet | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions. Run migration to verify. |
 | `backend` | Sonnet | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards. |
-| `frontend` | Sonnet | Frontend source + tests | Implement components and hooks per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards. |
+| `frontend` | Sonnet | Frontend source + tests | Implement UI components and state logic per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards. |
 
 Skip agents for layers with no work. Each agent follows a **define -> test -> implement** order:
 1. Define interfaces (function signatures, API routes, component props) per the plan
@@ -44,7 +44,11 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 5. Report results — does **NOT** commit or run git commands
 
 After all agents complete:
-1. Review cross-layer integration (do API responses match what frontend expects? do migrations match what backend queries?)
+1. **Cross-layer consistency check** — verify that names and types are consistent across all layers:
+   - Function/method names and signatures match at every call site across all layers
+   - Data field names match between what the backend produces and what the frontend consumes
+   - Types are compatible end-to-end (no silent coercions between layers)
+   - Any renamed symbol is updated in ALL layers and their tests
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run `/prep-commit` to verify all checks pass
 4. Commit with format: `<type>: <short-description>`

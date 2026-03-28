@@ -30,10 +30,11 @@ Start with storage -> backend -> frontend, but adapt the order based on the feat
 
 For each layer:
 1. **Explore the existing codebase** — read relevant files, schemas, patterns, and conventions already in use
-2. Ask clarifying questions about needs (simplicity, maintainability, performance, extensibility)
-3. Identify canonical approaches and present alternatives with pros/cons
-4. Recommend best option and confirm choice before moving to the next layer
-5. **Define test cases** — before moving on, outline what should be tested for this layer:
+2. **Augment-first check** — before proposing anything new, explicitly ask: can this be accomplished by extending an existing service, endpoint, UI element, or other abstraction? State your answer before presenting alternatives. Only introduce new abstractions when existing ones genuinely cannot be extended without degrading them.
+3. Ask clarifying questions about needs (simplicity, maintainability, performance, extensibility)
+4. Identify canonical approaches and present alternatives with pros/cons
+5. Recommend best option and confirm choice before moving to the next layer
+6. **Define test cases** — before moving on, outline what should be tested for this layer:
    - What behaviors and outcomes should the tests verify?
    - What edge cases and error conditions matter?
    - What should NOT be tested (implementation details, framework internals)?

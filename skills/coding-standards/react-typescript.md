@@ -25,6 +25,7 @@ Use a utility like `cn()` or `clsx` for conditional classes.
 
 - One service class per domain, methods return typed promises
 - API client handles auth tokens and 401 redirects automatically
+- Supabase returns `BIGINT` columns as `string` in JSON (to avoid JS precision loss) — type them as `string`, not `number`
 
 ## State Management
 
@@ -64,6 +65,7 @@ export const useFeature = () => {
 
 ## Testing (Vitest + RTL)
 
+- Always use `--run` flag with Vitest: `vitest --run` (prevents watch mode from blocking the process)
 - RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - `userEvent` over `fireEvent`
 - Test files in `__tests__/` next to source
