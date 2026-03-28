@@ -29,7 +29,7 @@ After fixing, the fixer must report disposition for every finding ID it received
 
 ```
 ACTED [reviewer:1] — added input validation at api/search.py:23
-ACTED [review-correctness:2] — fixed off-by-one in pagination loop
+ACTED [reviewer:2] — fixed off-by-one in pagination loop
 DISMISSED [codex-review:1] — false positive: validation handled upstream in middleware
 ```
 
@@ -59,7 +59,7 @@ datetime,project,command,reviewer,total_findings,unique_finds,actioned,dismissed
 - `datetime` — `YYYY-MM-DD HH:MM` (local time at run start)
 - `project` — basename of `git remote get-url origin`, or current directory name if no remote
 - `command` — `prep-commit` or `prep-merge-pr`
-- `reviewer` — agent name (`reviewer`, `codex-review`, `review-correctness`, `review-quality`, `review-security`)
+- `reviewer` — agent name (`reviewer`, `codex-review`, `review-security`)
 - `total_findings` — count from **initial run only** (before fix loop)
 - `unique_finds` — findings flagged by only this reviewer (from deduplication step)
 - `actioned` — findings the fixer acted on (from fixer attribution)

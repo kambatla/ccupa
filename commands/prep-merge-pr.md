@@ -43,14 +43,13 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 | Agent | Model | Task | When to spawn |
 |-------|-------|------|---------------|
-| `review-correctness` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **functional correctness**: logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, and changes that don't align with stated intent in commit messages. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
-| `review-quality` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for **code quality**: poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns in the codebase, and commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
-| `review-security` | Opus | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Changes touch auth, API, DB, or user input handling |
+| `reviewer` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for two categories — label every finding with its category: **[CORRECTNESS]** logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, changes that don't align with stated intent; **[QUALITY]** poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns, commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
+| `review-security` | Sonnet | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. Note: Sonnet handles common vulnerability patterns well; escalate to a human if findings involve subtle auth logic or business rule bypasses. | Changes touch auth, API, DB, or user input handling |
 | `codex-review` | Haiku | Run the codex command provided below. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code. | Codex CLI installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **branch changes review** command. Pass the complete command to the agent so it can execute directly.
 
-**Why 3 reviewers + Codex?** Each Claude reviewer goes deep on one concern instead of shallow on all. Codex provides an independent second-model perspective on the same changes. They all run in parallel so wall-clock time equals one review.
+**Why 2 reviewers + Codex?** The unified reviewer covers correctness and quality in one pass (high overlap in the ledger data made separate agents redundant). Security stays separate because it requires a different framing of the diff. Codex provides an independent second-model perspective. They all run in parallel so wall-clock time equals one review.
 
 **Why full test suites but conditional quality?** Tests (unit + integration) catch cross-cutting regressions that may not be obvious from the diff. Integration tests run the full stack and are the strongest signal before merge. Quality tools only have value for the language that actually changed. If `/prep-commit` already ran quality checks and auto-fixed issues (and no code changed since), re-running them is pure waste.
 
@@ -63,19 +62,29 @@ After **all** agents complete:
 3. Deduplicate review findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop, and to write the ledger).
 4. **Record initial findings** for the ledger: save per-reviewer counts (total_findings, unique_finds) now — before any fixes. These counts do not change in subsequent iterations.
 5. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
+6. **User triage gate** — present the deduplicated findings to the user (grouped by severity: blocking vs non-blocking) and ask which to fix now vs defer (e.g., to Linear). Wait for the user's response. Update the finding set to include only the approved-to-fix findings before entering the loop. If the user defers all findings, skip to **Step 4: Report**.
 
-**Loop** (max 4 iterations):
+Fix in three sequential phases (max 3 iterations each).
 
-6. Spawn and brief the fixer per `ccupa:review-resolver` skill, passing the **combined, deduplicated** findings from the most recent check run (test failures, quality errors, review issues with global IDs).
-7. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
-   - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
-8. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
-9. Re-run only the checks that failed in the **most recent** iteration:
-   - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
-   - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
-10. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
-11. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
-12. Otherwise -> next iteration (loop back to item 6 above with the new findings)
+**After each fixer run** — capture touched files: `git diff --name-only` (modified tracked files) + `git ls-files --others --exclude-standard` (new files), classified by layer using Step 1 logic. Re-stage: `git add -u` + any new files the fixer created (only in directories it was working in). Exit the phase immediately if the fixer made no changes — it determined the remaining issues don't warrant fixes.
+
+**Phase A — Correctness** (test failures + [CORRECTNESS]-labeled findings from `reviewer` + codex-review findings):
+- Skip if tests passed, reviewer had no [CORRECTNESS] findings, and codex-review had no findings
+- Spawn fixer per `ccupa:review-resolver` skill with Phase A findings
+- Re-run: backend tests if fixer touched backend files; frontend tests if fixer touched frontend files; integration tests if fixer touched either; re-run `reviewer` only if fixer ACTED on at least one [CORRECTNESS] finding
+- All pass → Phase B. 3 iterations exhausted → report remaining failures in Step 4 and stop.
+
+**Phase B — Security** (review-security findings):
+- Skip if review-security had no approved findings
+- Spawn fixer per `ccupa:review-resolver` skill with Phase B findings
+- Re-run: backend/frontend/integration tests for fixer-touched layers (security fixes can break logic); re-run review-security only if fixer ACTED on at least one security finding
+- All pass → Phase C. 3 iterations exhausted → report remaining in Step 4 and stop.
+
+**Phase C — Quality** (quality check errors + [QUALITY]-labeled findings from `reviewer`):
+- Skip if quality agents had no errors and reviewer had no [QUALITY] findings
+- Spawn fixer per `ccupa:review-resolver` skill with Phase C findings
+- Re-run: quality checks only for fixer-touched layers. Do NOT re-run test suites — quality fixes don't affect logic.
+- All pass → exit. 3 iterations exhausted → report remaining in Step 4.
 
 ### Step 3.5: Write Review Ledger
 After the loop exits (regardless of outcome):
@@ -92,10 +101,12 @@ After the loop exits (regardless of outcome):
    - Confirmation that full test suites and quality checks pass
 
 ## Approach
-- **Maximum parallelism**: up to 9 agents in Step 2 (2 unit tests + 1 integration tests + 2 quality + 3 reviews + Codex review), fewer if quality is skipped, integration tests not configured, or Codex not installed
-- **Specialized reviews**: each reviewer goes deep on one concern instead of shallow on everything
+- **Maximum parallelism**: up to 8 agents in Step 2 (2 unit tests + 1 integration tests + 2 quality + 2 reviews + Codex review), fewer if quality is skipped, integration tests not configured, security review skipped, or Codex not installed
+- **Unified code reviewer**: single Opus agent labels findings as [CORRECTNESS] or [QUALITY], replacing two separate reviewers; security stays separate at Sonnet
 - **Conditional agents**: security review only for security-sensitive changes; quality skipped for unchanged sides
 - **Full test suites**: final gate before PR — catches cross-cutting regressions
 - **Deduplicated findings**: merge overlapping issues before passing to the fixer
-- **Fix-verify loop**: fixer sees all findings per iteration, re-runs only failed checks, max 4 iterations. Exits early if fixer makes no code changes (explicit decision not to fix). Prevents infinite loops via hard iteration cap.
+- **Sequential fix phases**: Correctness first, then Security, then Quality — higher-priority fixes are settled before lower-priority ones run
+- **Scoped re-runs**: after each fixer run, re-run only checks for that phase and only for layers the fixer touched (`git diff --name-only`); re-run reviewers only if fixer ACTED on their findings; Quality phase never re-runs tests
+- **Per-phase iteration cap**: max 3 iterations per phase; exits early if fixer makes no changes
 - Don't create the PR — just prepare the branch for a clean merge

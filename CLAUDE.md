@@ -39,7 +39,7 @@ The commands form a feature development pipeline:
 4. `/bug` — Investigate, write regression test (must fail first), fix, prove fix works
 5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review + Codex review; fix issues
 6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC
-7. `/prep-merge-pr` — Full test suites, quality checks, 3 specialized reviews (correctness, quality, security) + Codex review; fix issues
+7. `/prep-merge-pr` — Full test suites, quality checks, 2 specialized reviews (unified correctness+quality, security) + Codex review; fix issues
 8. `/pr` — Push branch, create PR via `gh` with structured body
 9. `/merge` — Rebase on main, run `/prep-merge-pr`, merge, delete branch
 10. `/sync-main` — Pull latest main, delete merged local branches
@@ -63,8 +63,8 @@ When spawning agents, match the model to the task complexity:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, `/prep-commit` and `/prep-merge-pr` orchestrators, Claude code reviews (`reviewer` in prep-commit, `review-correctness`/`review-quality`/`review-security` in prep-merge-pr) |
-| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` (orchestrator + implementation teammates), `review-resolver` fixer agents |
+| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, `/prep-commit` and `/prep-merge-pr` orchestrators, Claude code reviews (`reviewer` in both prep-commit and prep-merge-pr) |
+| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` (orchestrator + implementation teammates), `review-resolver` fixer agents, `review-security` in prep-merge-pr |
 | **Haiku** | Test runners, quality/formatting checks, git workflows (`/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/review-roi`), `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
 

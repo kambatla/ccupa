@@ -29,10 +29,8 @@ Present a ranked table, sorted by `unique_finds` descending:
 ```
 Reviewer              Runs  Avg findings  Unique finds  Actionable rate
 ──────────────────────────────────────────────────────────────────────
-review-security         12       2.1            8            71%
-review-correctness      12       3.4            6            58%
-reviewer                12       1.8            3            44%
-review-quality          12       2.9            1            34%
+reviewer                12       3.4            8            58%
+review-security         12       2.1            6            71%
 codex-review            12       1.2            0            17%
 ```
 

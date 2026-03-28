@@ -19,6 +19,7 @@ The resolver must:
 1. Address each finding by its global ID
 2. Make targeted code fixes for valid issues
 3. Dismiss false positives and intentional design choices with clear reasoning — no code change required
-4. Report ACTED/DISMISSED attribution for every finding it received (see `ccupa:review-tracking` for format)
+4. **After applying fixes, run scoped tests for every file changed** — backend files: run pytest scoped to the changed test files; frontend files: run vitest with `--run` scoped to the changed test files. If tests fail, self-correct: update tests that are now stale due to behavior changes, or revise the fix approach. Up to 2 self-correction attempts per fix. Only mark a finding ACTED after the relevant tests pass. **Exception:** if the calling command's phase rules say "do NOT re-run tests" (e.g., Quality phase), skip this step — the orchestrator controls when tests run.
+5. Report ACTED/DISMISSED attribution for every finding it received (see `ccupa:review-tracking` for format)
 
 Every finding ID passed to the resolver must appear in its attribution report.

@@ -63,18 +63,21 @@ After **all** agents complete:
 4. **Record initial findings** for the ledger: save per-reviewer counts (total_findings, unique_finds) now — before any fixes. These counts do not change in subsequent iterations.
 5. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
 
-**Loop** (max 4 iterations):
+Fix in two sequential phases (max 3 iterations each).
 
-6. Spawn and brief the fixer per `ccupa:review-resolver` skill, passing the **combined, deduplicated** findings from the most recent check run (test failures, quality errors, review issues with global IDs).
-7. After fixer completes, check for changes via `git diff --quiet && git diff --cached --quiet` (exit code non-zero = changes exist) and `git ls-files --others --exclude-standard` (catches new files the fixer may have created):
-   - If fixer made **no changes** (no modified files, no new files) -> exit loop. The fixer determined remaining issues don't warrant fixes. Include the fixer's reasoning in the Step 4 report.
-8. Re-stage: `git add -u` and `git add` any new files the fixer created (but not unrelated untracked files — only files in directories the fixer was working in)
-9. Re-run only the checks that failed in the **most recent** iteration:
-   - Tests and quality agents: re-run if they reported failures, **or** if the fixer changed files covered by those tests
-   - Review agents: re-run only if the fixer changed code **and** that reviewer had findings in the most recent iteration
-10. If all re-run checks pass -> exit loop, proceed to **Step 4: Report**
-11. If this was iteration 4 -> exit loop, report remaining failures to the user in **Step 4: Report**
-12. Otherwise -> next iteration (loop back to item 6 above with the new findings)
+**After each fixer run** — capture touched files: `git diff --name-only` (modified tracked files) + `git ls-files --others --exclude-standard` (new files), classified by layer using Step 1 logic. Re-stage: `git add -u` + any new files the fixer created (only in directories it was working in). Exit the phase immediately if the fixer made no changes — it determined the remaining issues don't warrant fixes.
+
+**Phase A — Correctness** (test failures + reviewer findings + codex-review findings):
+- Skip if tests passed and no reviewer or codex-review had findings
+- Spawn fixer per `ccupa:review-resolver` skill with Phase A findings
+- Re-run: backend tests if fixer touched backend files; frontend tests if fixer touched frontend files; re-run reviewer only if fixer ACTED on at least one finding
+- All pass → Phase B. 3 iterations exhausted → report remaining failures in Step 4 and stop.
+
+**Phase B — Quality** (quality check errors):
+- Skip if quality agents found no errors
+- Spawn fixer per `ccupa:review-resolver` skill with Phase B findings
+- Re-run: quality checks only for fixer-touched layers. Do NOT re-run tests — quality fixes don't affect logic.
+- All pass → exit. 3 iterations exhausted → report remaining in Step 4.
 
 ### Step 3.5: Write Review Ledger
 After the loop exits (regardless of outcome):
@@ -93,5 +96,7 @@ After the loop exits (regardless of outcome):
 - **Maximum parallelism**: up to 6 agents working simultaneously in Step 2
 - **Skip unused sides**: no wasted work on unchanged code
 - **Explicit bug fix flag**: use `--bugfix` to trigger verification — no keyword guessing
-- **Fix-verify loop**: fixer sees all findings per iteration, re-runs only failed checks, max 4 iterations. Exits early if fixer makes no code changes (explicit decision not to fix). Prevents infinite loops via hard iteration cap.
+- **Sequential fix phases**: Correctness (tests + review) first, then Quality — lower-priority fixes don't run while higher-priority issues are unresolved
+- **Scoped re-runs**: after each fixer run, re-run only checks for that phase and only for layers the fixer touched (`git diff --name-only`); re-run reviewer only if fixer ACTED on its findings
+- **Per-phase iteration cap**: max 3 iterations per phase; exits early if fixer makes no changes
 - Don't commit — just prepare the code for a clean commit
