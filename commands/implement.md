@@ -13,19 +13,39 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 ## Process
 
 ### Step 1: Prepare
-1. Ensure main branch is synced (run `/sync-main` first if needed)
-2. Create feature branch (max 3 hyphenated words)
-3. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
-4. Classify which layers have meaningful work (refer to your project structure for paths):
-   - **DB**: Schema changes, migration files, database functions
-   - **Backend**: API endpoints, business logic, backend tests
-   - **Frontend**: Components, hooks, UI, frontend tests
-5. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-6. Choose execution mode:
-   - **2+ independent layers with clear contracts** -> Step 2a (parallel)
-   - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-7. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-8. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 5.
+
+#### Plan and branch
+1. Ensure you are in the main worktree (not an existing feature worktree). Compare `git rev-parse --show-toplevel` against the path extracted from `git worktree list --porcelain | sed -n '1s/^worktree //p'`. If they differ, `cd` to the main worktree before proceeding. Also verify the current branch is `main`; if not, prompt the user to switch before continuing.
+2. Ensure main branch is synced (run `/sync-main` first if needed)
+3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
+
+#### Set up worktree
+4. Derive `<project>` as `$(basename "$(pwd)")` (the basename of the current working directory)
+5. Check for collisions: if `../<project>-worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
+6. Create a worktree with the feature branch:
+   ```
+   mkdir -p ../<project>-worktrees
+   git worktree add ../<project>-worktrees/<branch> -b <branch>
+   ```
+7. Copy the implementation plan into the worktree — skip if `plans/<feature>/` does not exist (user provided context verbally):
+   ```
+   mkdir -p ../<project>-worktrees/<branch>/plans
+   cp -r plans/<feature>/ ../<project>-worktrees/<branch>/plans/<feature>/
+   ```
+8. `cd` into the worktree directory. **All subsequent steps execute there.**
+
+#### Classify work
+9. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
+10. Classify which layers have meaningful work (refer to your project structure for paths):
+    - **DB**: Schema changes, migration files, database functions
+    - **Backend**: API endpoints, business logic, backend tests
+    - **Frontend**: Components, hooks, UI, frontend tests
+11. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+12. Choose execution mode:
+    - **2+ independent layers with clear contracts** -> Step 2a (parallel)
+    - **Single layer or tightly coupled changes** -> Step 2b (sequential)
+13. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+14. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 11.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
