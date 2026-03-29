@@ -14,7 +14,7 @@ Run this entire workflow as a separate Task agent (use Haiku — it's a straight
 
 ## Process
 
-1. Verify current working directory is clean (no uncommitted changes)
+1. Verify the current worktree is clean (no uncommitted changes) — this check applies only to the current worktree, not all worktrees
 2. Switch to main branch (or master if that's the default)
 3. Pull latest changes from origin
 4. Identify local branches that have been merged into main

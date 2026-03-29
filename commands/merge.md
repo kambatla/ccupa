@@ -18,11 +18,13 @@ Note: `/prep-merge-pr` (called in Step 2) handles its own permission preflight.
 
 ### Step 0: Detect Worktree Context
 1. Check if the current directory is a worktree: compare `git rev-parse --show-toplevel` against the first (main) entry from `git worktree list`
-2. If in a worktree: record the worktree path for cleanup in Step 3
+2. If in a worktree: save `WORKTREE_PATH=$(git rev-parse --show-toplevel)` for use in Step 3
 3. If in the main checkout: no worktree cleanup needed
 
 ### Step 1: Rebase on Main
-1. Record the current branch name
+Stay in the feature worktree (or current directory if in the main checkout) for all steps in this section.
+
+1. Record the current branch name as `BRANCH`
 2. Verify you are NOT already on `main` (abort if so)
 3. Checkout `main` and pull latest
 4. Checkout the feature branch and rebase on `main`
@@ -38,13 +40,13 @@ If any checks fail, stop and report — do NOT merge a broken branch.
 
 ### Step 3: Merge and Clean Up
 1. Get the main worktree path (first entry from `git worktree list`)
-2. `cd` to the main worktree directory
+2. `cd` to the main worktree directory (leaving the feature worktree)
 3. Checkout `main` and pull latest
-4. Count commits on the feature branch not yet on `main` (`git log main..<branch> --oneline | wc -l`)
+4. Count commits on the feature branch not yet on `main` (`git log main..<BRANCH> --oneline | wc -l`, where `<BRANCH>` was recorded in Step 1)
 5. Merge the feature branch:
    - **Single commit:** `git merge --ff` (fast-forward, keeps history linear)
    - **Multiple commits:** `git merge --no-ff` (merge commit, preserves branch context)
-6. If started from a worktree: `git worktree remove --force <worktree-path>`, then delete the feature branch
+6. If started from a worktree: `git worktree remove --force $WORKTREE_PATH` (path saved in Step 0), then delete the feature branch
 7. If started from main checkout: just delete the feature branch
 
 Order matters: remove worktree first (so the branch isn't checked out anywhere), then delete the branch.
