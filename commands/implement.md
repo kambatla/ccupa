@@ -13,19 +13,32 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 ## Process
 
 ### Step 1: Prepare
-1. Ensure main branch is synced (run `/sync-main` first if needed)
-2. Create feature branch (max 3 hyphenated words)
-3. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
-4. Classify which layers have meaningful work (refer to your project structure for paths):
+1. Ensure you are in the main worktree (not an existing feature worktree). Compare `git rev-parse --show-toplevel` against the first entry from `git worktree list`. If they differ, `cd` to the main worktree before proceeding.
+2. Ensure main branch is synced (run `/sync-main` first if needed)
+3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
+4. Check for collisions: if `../<project>-worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
+5. Create a worktree with the feature branch:
+   ```
+   mkdir -p ../<project>-worktrees
+   git worktree add ../<project>-worktrees/<branch> -b <branch>
+   ```
+   `<project>` is the basename of the current working directory.
+6. Copy the implementation plan into the worktree:
+   ```
+   cp -r plans/<feature>/ ../<project>-worktrees/<branch>/plans/<feature>/
+   ```
+7. `cd` into the worktree directory. **All subsequent steps execute there.**
+8. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
+9. Classify which layers have meaningful work (refer to your project structure for paths):
    - **DB**: Schema changes, migration files, database functions
    - **Backend**: API endpoints, business logic, backend tests
    - **Frontend**: Components, hooks, UI, frontend tests
-5. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-6. Choose execution mode:
-   - **2+ independent layers with clear contracts** -> Step 2a (parallel)
-   - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-7. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-8. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 5.
+10. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+11. Choose execution mode:
+    - **2+ independent layers with clear contracts** -> Step 2a (parallel)
+    - **Single layer or tightly coupled changes** -> Step 2b (sequential)
+12. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+13. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 10.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
