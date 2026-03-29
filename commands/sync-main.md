@@ -20,7 +20,7 @@ Run this entire workflow as a separate Task agent (use Haiku — it's a straight
 4. Identify local branches that have been merged into main
 5. Parse `git worktree list --porcelain` to find worktrees whose `branch` field matches a merged branch — only match on exact branch name, skip any worktree that doesn't match
 6. Run `git worktree prune` to clean up stale worktree references (e.g., manually deleted directories)
-7. Present merged branches and their associated worktrees to the user for confirmation (single confirmation for both)
+7. Present merged branches and their associated worktrees to the user for confirmation (single confirmation for both). **Warn the user explicitly that `--force` removal will permanently discard any uncommitted changes in those worktrees. Advise them to check each worktree for uncommitted work and stash or commit it before confirming.**
 8. Remove worktrees for merged branches (`git worktree remove --force <path>` for each)
 9. Delete the merged branches
 10. Report summary: worktrees removed, branches deleted, main is up to date

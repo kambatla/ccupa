@@ -15,7 +15,7 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 ### Step 1: Prepare
 
 #### Plan and branch
-1. Ensure you are in the main worktree (not an existing feature worktree). Compare `git rev-parse --show-toplevel` against the first entry from `git worktree list`. If they differ, `cd` to the main worktree before proceeding. Also verify the current branch is `main`; if not, prompt the user to switch before continuing.
+1. Ensure you are in the main worktree (not an existing feature worktree). Compare `git rev-parse --show-toplevel` against the path extracted from `git worktree list --porcelain | sed -n '1s/^worktree //p'`. If they differ, `cd` to the main worktree before proceeding. Also verify the current branch is `main`; if not, prompt the user to switch before continuing.
 2. Ensure main branch is synced (run `/sync-main` first if needed)
 3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
 
@@ -29,6 +29,7 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
    ```
 7. Copy the implementation plan into the worktree — skip if `plans/<feature>/` does not exist (user provided context verbally):
    ```
+   mkdir -p ../<project>-worktrees/<branch>/plans
    cp -r plans/<feature>/ ../<project>-worktrees/<branch>/plans/<feature>/
    ```
 8. `cd` into the worktree directory. **All subsequent steps execute there.**
