@@ -71,11 +71,7 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 5. Report results — does **NOT** commit or run git commands
 
 After all agents complete:
-1. **Cross-layer consistency check** — verify that names and types are consistent across all layers:
-   - Function/method names and signatures match at every call site across all layers
-   - Data field names match between what the backend produces and what the frontend consumes
-   - Types are compatible end-to-end (no silent coercions between layers)
-   - Any renamed symbol is updated in ALL layers and their tests
+1. **Cross-layer consistency check** — verify function names, field names, and types are consistent across all layers and their tests
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run `/prep-commit` to verify all checks pass
 4. Commit with format: `<type>: <short-description>`
@@ -90,8 +86,6 @@ For each implementation plan phase, follow **define -> test -> implement** order
 5. Mark phase tasks complete in plan
 6. Run `/prep-commit` to verify all checks pass
 7. Commit with format: `<type>: <short-phase-description>`
-
-**Why define -> test -> implement?** Writing tests after implementation biases them toward verifying "how it was written" rather than "what it should do." Defining interfaces first gives tests something to compile against without implementation details to anchor on.
 
 ### Step 3: Verify Completeness
 After all implementation (parallel or sequential):
@@ -112,15 +106,9 @@ After all implementation (parallel or sequential):
    - Clean up migration scripts if used
    - Update docs if needed
 2. Run `/prep-merge-pr` to verify the branch is ready for PR
-3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
-
-### Step 5: Manual Test
-1. Restart backend/frontend as needed
-2. Wait for user feedback and address issues
+3. Archive the plan: `mv ../../plans/<feature>/ ../../tmp/<feature>/`
 
 ## Approach
-- Be direct and intellectually honest
-- Call out tech debt, feature creep, and over-engineering
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
 - **Why teams here?** Unlike prep-commit/prep-merge-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape
