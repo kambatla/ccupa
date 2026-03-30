@@ -20,32 +20,41 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
 
 #### Set up worktree
-4. Derive `<project>` as `$(basename "$(pwd)")` (the basename of the current working directory)
-5. Check for collisions: if `../<project>-worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
-6. Create a worktree with the feature branch:
+4. Check for collisions: if `worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
+5. Ensure `worktrees/` is git-ignored. Check:
    ```
-   mkdir -p ../<project>-worktrees
-   git worktree add ../<project>-worktrees/<branch> -b <branch>
+   grep -qxF 'worktrees/' .gitignore 2>/dev/null
    ```
-7. Copy the implementation plan into the worktree — skip if `plans/<feature>/` does not exist (user provided context verbally):
+   If not found, verify the working tree is clean (`git status --porcelain` returns empty) — if not, stop and ask the user to commit or stash first. Then add and commit to main:
    ```
-   mkdir -p ../<project>-worktrees/<branch>/plans
-   cp -r plans/<feature>/ ../<project>-worktrees/<branch>/plans/<feature>/
+   echo 'worktrees/' >> .gitignore
+   git add .gitignore
+   git commit -m "chore: ignore worktrees directory"
    ```
-8. `cd` into the worktree directory. **All subsequent steps execute there.**
+6. Create the worktree:
+   ```
+   mkdir -p worktrees/
+   git worktree add worktrees/<branch> -b <branch>
+   ```
+7. Change into the worktree directory — **all subsequent steps execute there**:
+   ```
+   cd worktrees/<branch>
+   ```
+8. Configure sandbox auto-allow for this worktree: run `/sandbox`
+9. Rename the session to the branch name: run `/rename <branch>`
 
 #### Classify work
-9. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
-10. Classify which layers have meaningful work (refer to your project structure for paths):
+10. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
+11. Classify which layers have meaningful work (refer to your project structure for paths):
     - **DB**: Schema changes, migration files, database functions
     - **Backend**: API endpoints, business logic, backend tests
     - **Frontend**: Components, hooks, UI, frontend tests
-11. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-12. Choose execution mode:
+12. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+13. Choose execution mode:
     - **2+ independent layers with clear contracts** -> Step 2a (parallel)
     - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-13. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-14. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 11.
+14. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+15. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 12.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
@@ -64,11 +73,7 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 5. Report results — does **NOT** commit or run git commands
 
 After all agents complete:
-1. **Cross-layer consistency check** — verify that names and types are consistent across all layers:
-   - Function/method names and signatures match at every call site across all layers
-   - Data field names match between what the backend produces and what the frontend consumes
-   - Types are compatible end-to-end (no silent coercions between layers)
-   - Any renamed symbol is updated in ALL layers and their tests
+1. **Cross-layer consistency check** — verify function names, field names, and types are consistent across all layers and their tests
 2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run `/prep-commit` to verify all checks pass
 4. Commit with format: `<type>: <short-description>`
@@ -84,11 +89,9 @@ For each implementation plan phase, follow **define -> test -> implement** order
 6. Run `/prep-commit` to verify all checks pass
 7. Commit with format: `<type>: <short-phase-description>`
 
-**Why define -> test -> implement?** Writing tests after implementation biases them toward verifying "how it was written" rather than "what it should do." Defining interfaces first gives tests something to compile against without implementation details to anchor on.
-
 ### Step 3: Verify Completeness
 After all implementation (parallel or sequential):
-1. Re-read `plans/<feature>/implementation-plan.md`
+1. Re-read `../../plans/<feature>/implementation-plan.md`
 2. Walk through every phase, task, and requirement in the plan
 3. For each item, classify as:
    - **Implemented** — code exists and tests pass
@@ -105,15 +108,9 @@ After all implementation (parallel or sequential):
    - Clean up migration scripts if used
    - Update docs if needed
 2. Run `/prep-merge-pr` to verify the branch is ready for PR
-3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
-
-### Step 5: Manual Test
-1. Restart backend/frontend as needed
-2. Wait for user feedback and address issues
+3. Archive the plan: `mv ../../plans/<feature>/ ../../tmp/<feature>/`
 
 ## Approach
-- Be direct and intellectually honest
-- Call out tech debt, feature creep, and over-engineering
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
 - **Why teams here?** Unlike prep-commit/prep-merge-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape
