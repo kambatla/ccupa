@@ -20,32 +20,39 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
 
 #### Set up worktree
-4. Derive `<project>` as `$(basename "$(pwd)")` (the basename of the current working directory)
-5. Check for collisions: if `../<project>-worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
-6. Create a worktree with the feature branch:
+4. Check for collisions: if `worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
+5. Ensure `worktrees/` is git-ignored. Check:
    ```
-   mkdir -p ../<project>-worktrees
-   git worktree add ../<project>-worktrees/<branch> -b <branch>
+   grep -qxF 'worktrees/' .gitignore 2>/dev/null
    ```
-7. Copy the implementation plan into the worktree — skip if `plans/<feature>/` does not exist (user provided context verbally):
+   If not found, add and commit to main before creating the worktree:
    ```
-   mkdir -p ../<project>-worktrees/<branch>/plans
-   cp -r plans/<feature>/ ../<project>-worktrees/<branch>/plans/<feature>/
+   echo 'worktrees/' >> .gitignore
+   git add .gitignore
+   git commit -m "chore: ignore worktrees directory"
    ```
-8. `cd` into the worktree directory. **All subsequent steps execute there.**
+6. Create the worktree:
+   ```
+   mkdir -p worktrees/
+   git worktree add worktrees/<branch> -b <branch>
+   ```
+7. Change into the worktree directory — **all subsequent steps execute there**:
+   ```
+   cd worktrees/<branch>
+   ```
 
 #### Classify work
-9. Read the implementation plan (from `plans/<feature>/implementation-plan.md` or user-provided context) — each phase should include a **Test** section from `/design`
-10. Classify which layers have meaningful work (refer to your project structure for paths):
+8. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
+9. Classify which layers have meaningful work (refer to your project structure for paths):
     - **DB**: Schema changes, migration files, database functions
     - **Backend**: API endpoints, business logic, backend tests
     - **Frontend**: Components, hooks, UI, frontend tests
-11. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-12. Choose execution mode:
+10. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+11. Choose execution mode:
     - **2+ independent layers with clear contracts** -> Step 2a (parallel)
     - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-13. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-14. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 11.
+12. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+13. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 10.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
@@ -88,7 +95,7 @@ For each implementation plan phase, follow **define -> test -> implement** order
 
 ### Step 3: Verify Completeness
 After all implementation (parallel or sequential):
-1. Re-read `plans/<feature>/implementation-plan.md`
+1. Re-read `../../plans/<feature>/implementation-plan.md`
 2. Walk through every phase, task, and requirement in the plan
 3. For each item, classify as:
    - **Implemented** — code exists and tests pass
