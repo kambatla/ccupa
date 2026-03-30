@@ -25,7 +25,7 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
    ```
    grep -qxF 'worktrees/' .gitignore 2>/dev/null
    ```
-   If not found, add and commit to main before creating the worktree:
+   If not found, verify the working tree is clean (`git status --porcelain` returns empty) — if not, stop and ask the user to commit or stash first. Then add and commit to main:
    ```
    echo 'worktrees/' >> .gitignore
    git add .gitignore
