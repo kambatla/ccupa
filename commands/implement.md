@@ -40,19 +40,21 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
    ```
    cd worktrees/<branch>
    ```
+8. Configure sandbox auto-allow for this worktree: run `/sandbox`
+9. Rename the session to the branch name: run `/rename <branch>`
 
 #### Classify work
-8. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
-9. Classify which layers have meaningful work (refer to your project structure for paths):
+10. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
+11. Classify which layers have meaningful work (refer to your project structure for paths):
     - **DB**: Schema changes, migration files, database functions
     - **Backend**: API endpoints, business logic, backend tests
     - **Frontend**: Components, hooks, UI, frontend tests
-10. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-11. Choose execution mode:
+12. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+13. Choose execution mode:
     - **2+ independent layers with clear contracts** -> Step 2a (parallel)
     - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-12. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-13. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 10.
+14. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+15. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 12.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
