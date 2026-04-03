@@ -36,6 +36,103 @@ Conditional skipping avoids wasted work: quality agents are skipped if `/prep-co
 
 Agents that spawn sub-agents need tool permissions pre-configured in `.claude/settings.local.json` — otherwise they block waiting for user approval. The permissions skill handles this: `/setup` bootstraps permissions during onboarding and preflight checks run before every agent-heavy command. `/learn` reflects on the full session — including scanning for patterns approved at runtime — and proposes improvements to permissions, conventions, and workflows.
 
+## Workflow
+
+```mermaid
+---
+config:
+  layout: fixed
+---
+flowchart TB
+ subgraph IMPL_A["↳ spawns in parallel (large features)"]
+    direction LR
+        IDB["db (Sonnet): Migrations + DB functions"]
+        IBE["backend (Sonnet): API endpoints + tests"]
+        IFE["frontend (Sonnet): UI components + tests"]
+  end
+ subgraph FEAT["Feature / Improvement"]
+    direction TB
+        BS["/brainstorm (Opus): Explore problem space, challenge assumptions"]
+        DS["/design (Opus): Architect layers, define test cases, write plan"]
+        IMP["/implement (Sonnet): Orchestrate implementation"]
+        IMPL_A
+  end
+ subgraph BUG["Bug Fix"]
+    direction TB
+        BG["/bug (Opus): Trace root cause, write failing regression\ntest, apply fix, verify test passes"]
+  end
+ subgraph PC_A["↳ spawns in parallel"]
+    direction LR
+        PCT["backend-tests (Haiku): Scoped test run"]
+        PCF2["frontend-tests (Haiku): Scoped test run"]
+        PCQ["backend-quality (Haiku): Lint + auto-fix"]
+        PCFQ["frontend-quality (Haiku): Lint + auto-fix"]
+        PCR["reviewer (Opus): Code review"]
+        PCC["codex-review (Codex): Codex CLI review"]
+  end
+ subgraph PMP_A["↳ spawns in parallel"]
+    direction LR
+        PMPT["backend-tests (Haiku): Full suite"]
+        PMPF2["frontend-tests (Haiku): Full suite"]
+        PMPI["integration-tests (Haiku): nFull stack"]
+        PMPQ["backend-quality (Haiku): Lint + auto-fix"]
+        PMPFQ["frontend-quality (Haiku): Lint + auto-fix"]
+        PMPR["reviewer (Opus): Correctness + quality"]
+        PMPS["review-security (Sonnet): Security review"]
+        PMPC["codex-review (Codex): Codex CLI review"]
+  end
+    BS --> DS
+    DS --> IMP
+    IMP --> IMPL_A
+    IMPL_A --> PC["/prep-commit (Opus): Verify before each commit"]
+    BG --> PC
+    PC --> PC_A
+    PC_A --> PCFIX["fixer (Sonnet): Fix findings (correctness → quality)"]
+    PCFIX --> CMT["/commit (Sonnet): Group by intent, stage, commit"]
+    CMT --> PMP["/prep-merge-pr (Opus): Full verification before merge"]
+    PMP --> PMP_A
+    PMP_A --> PMPFIX["fixer (Sonnet): Fix findings (correctness → security → quality)"]
+    PMPFIX --> PR["/pr (Haiku): Push branch + create PR"]
+    PR --> MRG["/merge (Haiku): Rebase on main + merge + clean up worktree"]
+    MRG --> SM["/sync-main (Haiku): Pull main + delete merged branches + worktrees"]
+
+     IDB:::sonnet
+     IBE:::sonnet
+     IFE:::sonnet
+     BS:::skill
+     DS:::skill
+     IMP:::skill
+     BG:::skill
+     PCT:::haiku
+     PCF2:::haiku
+     PCQ:::haiku
+     PCFQ:::haiku
+     PCR:::opus
+     PCC:::codex
+     PMPT:::haiku
+     PMPF2:::haiku
+     PMPI:::haiku
+     PMPQ:::haiku
+     PMPFQ:::haiku
+     PMPR:::opus
+     PMPS:::sonnet
+     PMPC:::codex
+     PC:::skill
+     PCFIX:::sonnet
+     CMT:::skill
+     PMP:::skill
+     PMPFIX:::sonnet
+     PR:::skill
+     MRG:::skill
+     SM:::skill
+    classDef skill fill:#1e293b,color:#f8fafc,stroke:#64748b,stroke-width:1.5px
+    classDef opus fill:#6d28d9,color:#fff,stroke:none
+    classDef sonnet fill:#1d4ed8,color:#fff,stroke:none
+    classDef haiku fill:#047857,color:#fff,stroke:none
+    classDef codex fill:#800020,color:#fff,stroke:none
+    classDef script fill:#92400e,color:#fff,stroke:none
+```
+
 ## Workflow commands
 
 | Command | Purpose |
