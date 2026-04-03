@@ -39,62 +39,66 @@ Agents that spawn sub-agents need tool permissions pre-configured in `.claude/se
 ## Workflow
 
 ```mermaid
----
-config:
-  layout: fixed
----
 flowchart TB
  subgraph IMPL_A["↳ spawns in parallel (large features)"]
     direction LR
-        IDB["db (Sonnet): Migrations + DB functions"]
-        IBE["backend (Sonnet): API endpoints + tests"]
-        IFE["frontend (Sonnet): UI components + tests"]
+        IDB["db (Sonnet):<br/>Migrations + DB functions"]
+        IBE["backend (Sonnet):<br/>API endpoints + tests"]
+        IFE["frontend (Sonnet):<br/>UI components + tests"]
   end
  subgraph FEAT["Feature / Improvement"]
     direction TB
-        BS["/brainstorm (Opus): Explore problem space, challenge assumptions"]
-        DS["/design (Opus): Architect layers, define test cases, write plan"]
-        IMP["/implement (Sonnet): Orchestrate implementation"]
+        BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
+        DS["/design (Opus):<br/>Architect layers,<br/>define test cases, write plan"]
+        IMP["/implement (Sonnet):<br/>Orchestrate implementation"]
         IMPL_A
   end
  subgraph BUG["Bug Fix"]
     direction TB
-        BG["/bug (Opus): Trace root cause, write failing regression\ntest, apply fix, verify test passes"]
+        BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
   end
  subgraph PC_A["↳ spawns in parallel"]
     direction LR
-        PCT["backend-tests (Haiku): Scoped test run"]
-        PCF2["frontend-tests (Haiku): Scoped test run"]
-        PCQ["backend-quality (Haiku): Lint + auto-fix"]
-        PCFQ["frontend-quality (Haiku): Lint + auto-fix"]
-        PCR["reviewer (Opus): Code review"]
-        PCC["codex-review (Codex): Codex CLI review"]
+        PCT["backend-tests (Haiku):<br/>Scoped test run"]
+        PCF2["frontend-tests (Haiku):<br/>Scoped test run"]
+        PCQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
+        PCFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
+        PCR["reviewer (Opus):<br/>Code review"]
+        PCC["codex-review (Codex):<br/>Codex CLI review"]
   end
  subgraph PMP_A["↳ spawns in parallel"]
     direction LR
-        PMPT["backend-tests (Haiku): Full suite"]
-        PMPF2["frontend-tests (Haiku): Full suite"]
-        PMPI["integration-tests (Haiku): nFull stack"]
-        PMPQ["backend-quality (Haiku): Lint + auto-fix"]
-        PMPFQ["frontend-quality (Haiku): Lint + auto-fix"]
-        PMPR["reviewer (Opus): Correctness + quality"]
-        PMPS["review-security (Sonnet): Security review"]
-        PMPC["codex-review (Codex): Codex CLI review"]
+        PMPT["backend-tests (Haiku):<br/>Full suite"]
+        PMPF2["frontend-tests (Haiku):<br/>Full suite"]
+        PMPI["integration-tests (Haiku):<br/>Full stack"]
+        PMPQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
+        PMPFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
+        PMPR["reviewer (Opus):<br/>Correctness + quality"]
+        PMPS["review-security (Sonnet):<br/>Security review"]
+        PMPC["codex-review (Codex):<br/>Codex CLI review"]
   end
+    PC["/prep-commit (Opus):<br/>Verify before each commit"]
+    PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
+    CMT["/commit (Sonnet):<br/>Group by intent,<br/>stage, commit"]
+    PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
+    PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
+    PR["/pr (Haiku):<br/>Push branch + create PR"]
+    MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up worktree"]
+    SM["/sync-main (Haiku):<br/>Pull main + delete<br/>merged branches"]
     BS --> DS
     DS --> IMP
     IMP --> IMPL_A
-    IMPL_A --> PC["/prep-commit (Opus): Verify before each commit"]
+    IMPL_A --> PC
     BG --> PC
     PC --> PC_A
-    PC_A --> PCFIX["fixer (Sonnet): Fix findings (correctness → quality)"]
-    PCFIX --> CMT["/commit (Sonnet): Group by intent, stage, commit"]
-    CMT --> PMP["/prep-merge-pr (Opus): Full verification before merge"]
+    PC_A --> PCFIX
+    PCFIX --> CMT
+    CMT --> PMP
     PMP --> PMP_A
-    PMP_A --> PMPFIX["fixer (Sonnet): Fix findings (correctness → security → quality)"]
-    PMPFIX --> PR["/pr (Haiku): Push branch + create PR"]
-    PR --> MRG["/merge (Haiku): Rebase on main + merge + clean up worktree"]
-    MRG --> SM["/sync-main (Haiku): Pull main + delete merged branches + worktrees"]
+    PMP_A --> PMPFIX
+    PMPFIX --> PR
+    PR --> MRG
+    MRG --> SM
 
      IDB:::sonnet
      IBE:::sonnet
