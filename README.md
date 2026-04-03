@@ -38,6 +38,8 @@ Agents that spawn sub-agents need tool permissions pre-configured in `.claude/se
 
 ## Workflow
 
+Solid arrows are auto-invoked by the source command; dashed arrows require explicit user invocation.
+
 ```mermaid
 flowchart TB
  subgraph IMPL_A["↳ spawns in parallel (large features)"]
@@ -78,35 +80,41 @@ flowchart TB
         PMPC["codex-review (Codex):<br/>Codex CLI review"]
   end
     PC["/prep-commit (Opus):<br/>Verify before each commit"]
+    PC_CHECK{issues?}
     PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
     CMT["/commit (Sonnet):<br/>Group by intent,<br/>stage, commit"]
     PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
+    PMP_CHECK{issues?}
     PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
     PR["/pr (Haiku):<br/>Push branch + create PR"]
     MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up worktree"]
     SM["/sync-main (Haiku):<br/>Pull main + delete<br/>merged branches"]
-    BS --> DS
-    DS --> IMP
+    BS -.-> DS
+    DS -.-> IMP
     IMP --> IMPL_A
     IMPL_A --> PC
     BG --> PC
     PC --> PC_A
-    PC_A --> PCFIX
-    PCFIX --> CMT
+    PC_A --> PC_CHECK
+    PC_CHECK -->|yes| PCFIX
+    PCFIX --> PC_CHECK
+    PC_CHECK -->|no| CMT
     CMT --> PMP
     PMP --> PMP_A
-    PMP_A --> PMPFIX
-    PMPFIX --> PR
-    PR --> MRG
-    MRG --> SM
+    PMP_A --> PMP_CHECK
+    PMP_CHECK -->|yes| PMPFIX
+    PMPFIX --> PMP_CHECK
+    PMP_CHECK -.->|no| PR
+    PR -.-> MRG
+    MRG -.-> SM
 
      IDB:::sonnet
      IBE:::sonnet
      IFE:::sonnet
-     BS:::skill
-     DS:::skill
-     IMP:::skill
-     BG:::skill
+     BS:::skill-opus
+     DS:::skill-opus
+     IMP:::skill-sonnet
+     BG:::skill-opus
      PCT:::haiku
      PCF2:::haiku
      PCQ:::haiku
@@ -121,20 +129,21 @@ flowchart TB
      PMPR:::opus
      PMPS:::sonnet
      PMPC:::codex
-     PC:::skill
+     PC:::skill-opus
      PCFIX:::sonnet
-     CMT:::skill
-     PMP:::skill
+     CMT:::skill-sonnet
+     PMP:::skill-opus
      PMPFIX:::sonnet
-     PR:::skill
-     MRG:::skill
-     SM:::skill
-    classDef skill fill:#1e293b,color:#f8fafc,stroke:#64748b,stroke-width:1.5px
+     PR:::skill-haiku
+     MRG:::skill-haiku
+     SM:::skill-haiku
+    classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
+    classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
+    classDef skill-haiku fill:#1e293b,color:#f8fafc,stroke:#047857,stroke-width:2.5px
     classDef opus fill:#6d28d9,color:#fff,stroke:none
     classDef sonnet fill:#1d4ed8,color:#fff,stroke:none
     classDef haiku fill:#047857,color:#fff,stroke:none
     classDef codex fill:#800020,color:#fff,stroke:none
-    classDef script fill:#92400e,color:#fff,stroke:none
 ```
 
 ## Workflow commands
