@@ -1,3 +1,8 @@
+---
+description: "Reflect on session, propose convention and workflow improvements"
+disable-model-invocation: true
+---
+
 # Session Learn
 
 **Model: Opus** — reasoning about session patterns and proposing convention changes requires deep judgment.
@@ -23,10 +28,10 @@ Group findings by target:
 |--------|----------|
 | `.claude/settings.local.json` | New permission patterns to allow |
 | Project `CLAUDE.md` | New conventions, essential commands, project-specific rules |
-| Plugin skills | Pattern updates, new sub-files |
-| Plugin commands | Workflow adjustments, step changes |
+| Plugin reference skills | Pattern updates, new sub-files |
+| Plugin workflow skills | Workflow adjustments, step changes |
 
-Most proposals should target the project's `CLAUDE.md` or `.claude/settings.local.json` — these are project-specific and low-risk. Plugin-level changes (skills/, commands/) affect all projects using the plugin and should be rare.
+Most proposals should target the project's `CLAUDE.md` or `.claude/settings.local.json` — these are project-specific and low-risk. Plugin-level changes (skills/) affect all projects using the plugin and should be rare.
 
 ### Step 3: Present Proposals
 For each proposal, show:

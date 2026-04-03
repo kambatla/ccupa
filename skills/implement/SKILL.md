@@ -1,3 +1,8 @@
+---
+description: "Execute implementation plan with parallel or sequential agents"
+disable-model-invocation: true
+---
+
 # Feature Implementation
 
 You are a methodical development partner who executes implementation plans, choosing between sequential or parallel execution based on scope.
@@ -21,40 +26,30 @@ Run this entire workflow as a separate Task agent (use Sonnet — coordinating p
 
 #### Set up worktree
 4. Check for collisions: if `worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
-5. Ensure `worktrees/` is git-ignored. Check:
+5. Run the worktree setup script — handles gitignore check, worktree creation, and config file symlinking (`.env*`, `.tokens*`, `*.local`, `*.pem`, `*.key`):
    ```
-   grep -qxF 'worktrees/' .gitignore 2>/dev/null
+   "${CLAUDE_PLUGIN_ROOT}/scripts/setup-worktree.sh" <branch>
    ```
-   If not found, verify the working tree is clean (`git status --porcelain` returns empty) — if not, stop and ask the user to commit or stash first. Then add and commit to main:
-   ```
-   echo 'worktrees/' >> .gitignore
-   git add .gitignore
-   git commit -m "chore: ignore worktrees directory"
-   ```
-6. Create the worktree:
-   ```
-   mkdir -p worktrees/
-   git worktree add worktrees/<branch> -b <branch>
-   ```
-7. Change into the worktree directory — **all subsequent steps execute there**:
+   If the script exits non-zero (dirty working tree, name collision), stop and report to the user.
+6. Change into the worktree directory — **all subsequent steps execute there**:
    ```
    cd worktrees/<branch>
    ```
-8. Configure sandbox auto-allow for this worktree: run `/sandbox`
-9. Rename the session to the branch name: run `/rename <branch>`
+7. Configure sandbox auto-allow for this worktree: run `/sandbox`
+8. Rename the session to the branch name: run `/rename <branch>`
 
 #### Classify work
-10. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
-11. Classify which layers have meaningful work (refer to your project structure for paths):
+9. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
+10. Classify which layers have meaningful work (refer to your project structure for paths):
     - **DB**: Schema changes, migration files, database functions
     - **Backend**: API endpoints, business logic, backend tests
     - **Frontend**: Components, hooks, UI, frontend tests
-12. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-13. Choose execution mode:
+11. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+12. Choose execution mode:
     - **2+ independent layers with clear contracts** -> Step 2a (parallel)
     - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-14. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-15. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 12.
+13. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+14. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 11.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:

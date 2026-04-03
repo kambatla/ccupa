@@ -240,8 +240,25 @@ build/
 
 ### After PR Merged
 1. Delete feature branch locally: `git branch -d feature-name`
-2. Delete remote branch: `git push origin --delete feature-name` (or via GitHub UI)
-3. Pull latest main: `git checkout main && git pull`
+2. Delete remote branch: `git push origin --delete feature-name` (or via GitHub UI) — see [Remote Operations and Sandbox](#remote-operations-and-sandbox)
+3. Pull latest main: `git checkout main && git pull` — see [Remote Operations and Sandbox](#remote-operations-and-sandbox)
+
+## Remote Operations and Sandbox
+
+Git remote operations use SSH, which is blocked by Claude Code's sandbox. Set `dangerouslyDisableSandbox: true` on any Bash call that communicates with a remote:
+
+| Command | Remote? | Needs flag? |
+|---------|---------|-------------|
+| `git push` | Yes | Yes |
+| `git pull` | Yes | Yes |
+| `git fetch <remote>` | Yes | Yes |
+| `git clone` | Yes | Yes |
+| `git status`, `git add`, `git commit`, `git log`, `git diff`, `git branch`, `git rebase` | No | No |
+
+**Key points:**
+- This is a **per-call** parameter — sandbox reverts automatically after each call, no restore step needed
+- Existing permissions in `settings.local.json` are unaffected
+- The flag must be set on the specific Bash call that runs the remote command, not on surrounding calls
 
 ## Quick Reference
 

@@ -1,3 +1,8 @@
+---
+description: "Push branch and create pull request with structured description"
+disable-model-invocation: true
+---
+
 # Create Pull Request
 
 Create a pull request with a comprehensive description following project conventions.
@@ -26,7 +31,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 3. **Push if needed:**
    - Check if current branch tracks a remote
-   - Push with `-u` flag if not yet pushed
+   - Push with `-u` flag if not yet pushed — set `dangerouslyDisableSandbox: true` on this call (SSH is blocked by sandbox)
 
 4. **Create PR:**
    - Title: `<type>: <description>` per git-conventions

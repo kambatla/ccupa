@@ -1,8 +1,3 @@
-<!-- upstream: https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum (source: help.md) -->
----
-description: "Explain Ralph Wiggum technique and available commands"
----
-
 # Ralph Wiggum Plugin Help
 
 Please explain the following to the user:
@@ -32,14 +27,14 @@ The technique is described as "deterministically bad in an undeterministic world
 
 ## Available Commands
 
-### /ralph-loop <PROMPT> [OPTIONS]
+### /ralph <PROMPT> [OPTIONS]
 
 Start a Ralph loop in your current session.
 
 **Usage:**
 ```
-/ralph-loop "Refactor the cache layer" --max-iterations 20
-/ralph-loop "Add tests" --completion-promise "TESTS COMPLETE"
+/ralph "Refactor the cache layer" --max-iterations 20
+/ralph "Add tests" --completion-promise "TESTS COMPLETE"
 ```
 
 **Options:**
@@ -56,14 +51,9 @@ Start a Ralph loop in your current session.
 
 ---
 
-### /cancel-ralph
+### /ralph stop
 
 Cancel an active Ralph loop (removes the loop state file).
-
-**Usage:**
-```
-/cancel-ralph
-```
 
 **How it works:**
 - Checks for active loop state file
@@ -97,7 +87,7 @@ The "loop" doesn't mean Claude talks to itself. It means:
 ### Interactive Bug Fix
 
 ```
-/ralph-loop "Fix the token refresh logic in auth.ts. Output <promise>FIXED</promise> when all tests pass." --completion-promise "FIXED" --max-iterations 10
+/ralph "Fix the token refresh logic in auth.ts. Output <promise>FIXED</promise> when all tests pass." --completion-promise "FIXED" --max-iterations 10
 ```
 
 You'll see Ralph:

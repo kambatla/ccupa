@@ -1,3 +1,8 @@
+---
+description: "Explore problem space, challenge assumptions, and recommend direction"
+disable-model-invocation: true
+---
+
 # Feature Brainstorming
 
 **Model: Opus** — exploring problem space and challenging assumptions requires deep reasoning.

@@ -1,3 +1,8 @@
+---
+description: "Run tests, quality checks, and code review in parallel; fix issues"
+disable-model-invocation: true
+---
+
 # Prepare for Commit
 
 Run tests, code quality checks, and a code review in parallel using agents, then fix issues and verify.

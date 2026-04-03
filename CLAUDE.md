@@ -12,7 +12,7 @@ The plugin is defined in `.claude-plugin/plugin.json`.
 
 ```
 .claude-plugin/plugin.json     # Plugin manifest
-skills/                        # Skill definitions (invoked automatically by context)
+skills/                        # All skills — reference docs and workflow commands
   coding-standards/            # SKILL.md routes to python.md or react-typescript.md
   db-conventions/              # SKILL.md routes to supabase.md
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
@@ -21,16 +21,35 @@ skills/                        # Skill definitions (invoked automatically by con
   codex-review/                # SKILL.md (single file, no sub-routes)
   review-tracking/             # SKILL.md (single file, no sub-routes)
   review-resolver/             # SKILL.md (single file, no sub-routes)
-commands/                      # Slash commands (user-invoked workflows)
+  brainstorm/                  # Workflow skill (disable-model-invocation: true)
+  bug/                         # Workflow skill (disable-model-invocation: true)
+  commit/                      # Workflow skill (disable-model-invocation: true)
+  design/                      # Workflow skill (disable-model-invocation: true)
+  implement/                   # Workflow skill (disable-model-invocation: true)
+  learn/                       # Workflow skill (disable-model-invocation: true)
+  merge/                       # Workflow skill (disable-model-invocation: true)
+  pr/                          # Workflow skill (disable-model-invocation: true)
+  prep-commit/                 # Workflow skill (disable-model-invocation: true)
+  prep-merge-pr/               # Workflow skill (disable-model-invocation: true)
+  push/                        # Workflow skill (disable-model-invocation: true)
+  ralph/                       # Workflow skill: loop.md, cancel.md, help.md
+  review-roi/                  # Workflow skill (disable-model-invocation: true)
+  setup/                       # Workflow skill (disable-model-invocation: true)
+  sync-main/                   # Workflow skill (disable-model-invocation: true)
+scripts/                       # Shared shell scripts invoked by workflow skills
+  setup-worktree.sh            # Create worktree, check gitignore, symlink config files
+  teardown-worktree.sh         # Remove worktree and delete branch after merge
+  push-all-remotes.sh          # Push main to all configured remotes
+  setup-ralph-loop.sh          # Initialize Ralph loop state file
 ```
 
-**Skills** are reference material that Claude invokes contextually (coding patterns, DB conventions, git standards, deployment guides). Each skill has a `SKILL.md` router that points to language- or platform-specific files.
+**Reference skills** (auto-invoked by context): coding-standards, db-conventions, deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
 
-**Commands** are multi-step workflows the user triggers explicitly. They define processes, not reference material.
+**Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Scripts in `scripts/` handle deterministic shell sequences; judgment and orchestration stay in the skill instructions.
 
-## Command Lifecycle
+## Workflow Lifecycle
 
-The commands form a feature development pipeline:
+The workflow skills form a feature development pipeline:
 
 0. `/setup` — Onboard a consuming project: configure permissions, bootstrap settings
 1. `/brainstorm` — Explore problem space, challenge assumptions, recommend direction
@@ -77,8 +96,9 @@ Issues are tracked on GitHub: https://github.com/kambatla/ccupa/issues
 ## Editing Guidelines
 
 When modifying this plugin:
-- Skills are reference docs — keep them scannable with tables, code blocks, and clear rules
-- Commands are workflow definitions — they specify sequential steps, agent coordination, and skip conditions
-- Each SKILL.md is a router — it should only describe when to use the skill and link to sub-files
-- Commands reference each other (e.g., `/commit` calls `/prep-commit`, `/pr` calls `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
-- Commands specify model choices per the Agent Model Selection table above — preserve these when editing
+- Reference skills are reference docs — keep them scannable with tables, code blocks, and clear rules
+- Workflow skills define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
+- Each SKILL.md is an entrypoint — reference skill SKILL.mds should describe when to use the skill and link to sub-files; workflow skill SKILL.mds contain the full workflow
+- Workflow skills reference each other (e.g., `/commit` calls `/prep-commit`, `/pr` calls `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
+- Workflow skills specify model choices per the Agent Model Selection table above — preserve these when editing
+- Scripts in `scripts/` handle deterministic shell sequences — keep them focused and single-purpose; invoke via `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`

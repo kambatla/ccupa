@@ -1,3 +1,8 @@
+---
+description: "Analyze review ledger to surface reviewer effectiveness"
+disable-model-invocation: true
+---
+
 # Review ROI
 
 Analyze `~/.claude/review-ledger.csv` to surface which reviewers are earning their cost.

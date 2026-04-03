@@ -1,3 +1,8 @@
+---
+description: "Onboard project with tool permissions and conventions"
+disable-model-invocation: true
+---
+
 # Project Setup
 
 Onboard a consuming project with tool permissions and conventions. Interactive, one-time.

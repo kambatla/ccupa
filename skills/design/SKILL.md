@@ -1,3 +1,8 @@
+---
+description: "Architect feature layer-by-layer with test cases and implementation plan"
+disable-model-invocation: true
+---
+
 # Feature Design
 
 **Model: Opus** — architecture decisions and tradeoff reasoning require deep judgment.

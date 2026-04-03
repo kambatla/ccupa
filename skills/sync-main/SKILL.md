@@ -1,3 +1,8 @@
+---
+description: "Pull latest main and clean up merged branches and worktrees"
+disable-model-invocation: true
+---
+
 # Sync Main and Cleanup
 
 Sync main branch with origin and delete merged feature branches.
@@ -16,7 +21,7 @@ Run this entire workflow as a separate Task agent (use Haiku — it's a straight
 
 1. Verify the current worktree is clean (no uncommitted changes) — this check applies only to the current worktree, not all worktrees
 2. Switch to main branch (or master if that's the default)
-3. Pull latest changes from origin
+3. Pull latest changes from origin — set `dangerouslyDisableSandbox: true` on this call (SSH is blocked by sandbox)
 4. Identify local branches that have been merged into main
 5. Parse `git worktree list --porcelain` to find worktrees whose `branch` field matches a merged branch — only match on exact branch name, skip any worktree that doesn't match
 6. Run `git worktree prune` to clean up stale worktree references (e.g., manually deleted directories)

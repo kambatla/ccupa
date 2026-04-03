@@ -1,3 +1,8 @@
+---
+description: "Stage, group, and commit changes per git conventions"
+disable-model-invocation: true
+---
+
 # Commit Changes
 
 Create a well-formatted git commit following project conventions.

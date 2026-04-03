@@ -1,3 +1,8 @@
+---
+description: "Investigate bug, write regression test, fix and verify"
+disable-model-invocation: true
+---
+
 # Bug Fix
 
 **Model: Opus** — root cause investigation and fix planning require deep reasoning.

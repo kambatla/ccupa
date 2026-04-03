@@ -1,3 +1,8 @@
+---
+description: "Run full test suites, quality checks, and specialized reviews; fix issues"
+disable-model-invocation: true
+---
+
 # Prepare for Merge PR
 
 Run full test suites, code quality checks, and specialized code reviews in parallel using agents, then fix issues and verify.

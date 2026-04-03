@@ -1,10 +1,3 @@
-<!-- upstream: https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum -->
----
-description: "Cancel active Ralph Wiggum loop"
-allowed-tools: ["Bash(test -f .claude/ralph-loop.local.md:*)", "Bash(rm .claude/ralph-loop.local.md)", "Read(.claude/ralph-loop.local.md)"]
-hide-from-slash-command-tool: "true"
----
-
 # Cancel Ralph
 
 To cancel the Ralph loop:

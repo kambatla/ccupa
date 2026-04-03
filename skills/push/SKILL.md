@@ -1,3 +1,8 @@
+---
+description: "Push main branch to all configured remotes"
+disable-model-invocation: true
+---
+
 # Push Main to All Remotes
 
 Push the main branch to every configured remote.
@@ -14,6 +19,9 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 ## Process
 
-1. Verify you are on the main branch (abort if not)
-2. List all configured remotes (`git remote`)
-3. Push the main branch to each remote
+Run the push script — set `dangerouslyDisableSandbox: true` (SSH is blocked by sandbox):
+```
+"${CLAUDE_PLUGIN_ROOT}/scripts/push-all-remotes.sh"
+```
+
+The script verifies you are on main, lists all configured remotes, and pushes to each.
