@@ -99,7 +99,8 @@ flowchart TB
     PC_CHECK -->|yes| PCFIX
     PCFIX --> PC_CHECK
     PC_CHECK -->|no| CMT
-    CMT --> PMP
+    IMP --> PMP
+    BG --> PMP
     PMP --> PMP_A
     PMP_A --> PMP_CHECK
     PMP_CHECK -->|yes| PMPFIX
