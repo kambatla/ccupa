@@ -107,6 +107,8 @@ flowchart LR
     PMPFIX --> PMP_A
     PMP_CHECK -.->|no| PR
     PMP_CHECK -.->|no| MRG
+    IMPL_A ~~~ PC
+    CMT ~~~ PMP
     %% PR --> PMP
     %% MRG --> PMP
 
