@@ -42,44 +42,6 @@ Solid arrows are auto-invoked by the source command; dashed arrows require expli
 
 ```mermaid
 flowchart LR
- subgraph IMPL_A["↳ spawns in parallel (large features)"]
-    direction TB
-        IDB["db (Sonnet):<br/>Migrations + DB functions"]
-        IBE["backend (Sonnet):<br/>API endpoints + tests"]
-        IFE["frontend (Sonnet):<br/>UI components + tests"]
-  end
- subgraph FEAT["Feature / Improvement"]
-    direction LR
-        BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
-        DS["/design (Opus):<br/>Architect layers,<br/>define test cases, write plan"]
-        IMP["/implement (Sonnet):<br/>Orchestrate implementation"]
-        IMPL_A
-  end
-%%  subgraph BUG["Bug Fix"]
-%%     direction TB
-%%         BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
-%%   end
- subgraph PC_FLOW["Prep-Commit → Commit"]
-    direction LR
-    PC["/prep-commit (Opus):<br/>Verify before each commit"]
-    subgraph PC_A["↳ spawns in parallel"]
-        direction TB
-        PCT["backend-tests (Haiku):<br/>Scoped test run"]
-        PCF2["frontend-tests (Haiku):<br/>Scoped test run"]
-        PCQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
-        PCFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
-        PCR["reviewer (Opus):<br/>Code review"]
-        PCC["codex-review (Codex):<br/>Codex CLI review"]
-    end
-    PC_CHECK{issues?}
-    PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
-    CMT["/commit (Sonnet):<br/>Group by intent,<br/>stage, commit"]
-    PC --> PC_A
-    PC_A --> PC_CHECK
-    PC_CHECK -->|yes| PCFIX
-    PCFIX --> PC_A
-    PC_CHECK -->|no| CMT
-  end
  subgraph PMP_FLOW["Prep-Merge → PR / Merge"]
     direction LR
     PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
@@ -105,6 +67,44 @@ flowchart LR
     PMP_CHECK -.->|no| PR
     PMP_CHECK -.->|no| MRG
   end
+ subgraph PC_FLOW["Prep-Commit → Commit"]
+    direction LR
+    PC["/prep-commit (Opus):<br/>Verify before each commit"]
+    subgraph PC_A["↳ spawns in parallel"]
+        direction TB
+        PCT["backend-tests (Haiku):<br/>Scoped test run"]
+        PCF2["frontend-tests (Haiku):<br/>Scoped test run"]
+        PCQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
+        PCFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
+        PCR["reviewer (Opus):<br/>Code review"]
+        PCC["codex-review (Codex):<br/>Codex CLI review"]
+    end
+    PC_CHECK{issues?}
+    PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
+    CMT["/commit (Sonnet):<br/>Group by intent,<br/>stage, commit"]
+    PC --> PC_A
+    PC_A --> PC_CHECK
+    PC_CHECK -->|yes| PCFIX
+    PCFIX --> PC_A
+    PC_CHECK -->|no| CMT
+  end
+ subgraph IMPL_A["↳ spawns in parallel (large features)"]
+    direction TB
+        IDB["db (Sonnet):<br/>Migrations + DB functions"]
+        IBE["backend (Sonnet):<br/>API endpoints + tests"]
+        IFE["frontend (Sonnet):<br/>UI components + tests"]
+  end
+ subgraph FEAT["Feature / Improvement"]
+    direction LR
+        BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
+        DS["/design (Opus):<br/>Architect layers,<br/>define test cases, write plan"]
+        IMP["/implement (Sonnet):<br/>Orchestrate implementation"]
+        IMPL_A
+  end
+%%  subgraph BUG["Bug Fix"]
+%%     direction TB
+%%         BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
+%%   end
     BS -.-> DS
     DS -.-> IMP
     IMP --> IMPL_A
