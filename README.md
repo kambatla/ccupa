@@ -41,26 +41,26 @@ Agents that spawn sub-agents need tool permissions pre-configured in `.claude/se
 Solid arrows are auto-invoked by the source command; dashed arrows require explicit user invocation.
 
 ```mermaid
-flowchart TB
+flowchart LR
  subgraph IMPL_A["↳ spawns in parallel (large features)"]
-    direction LR
+    direction TB
         IDB["db (Sonnet):<br/>Migrations + DB functions"]
         IBE["backend (Sonnet):<br/>API endpoints + tests"]
         IFE["frontend (Sonnet):<br/>UI components + tests"]
   end
  subgraph FEAT["Feature / Improvement"]
-    direction TB
+    direction LR
         BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
         DS["/design (Opus):<br/>Architect layers,<br/>define test cases, write plan"]
         IMP["/implement (Sonnet):<br/>Orchestrate implementation"]
         IMPL_A
   end
- subgraph BUG["Bug Fix"]
-    direction TB
-        BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
-  end
+%%  subgraph BUG["Bug Fix"]
+%%     direction TB
+%%         BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
+%%   end
  subgraph PC_A["↳ spawns in parallel"]
-    direction LR
+    direction TB
         PCT["backend-tests (Haiku):<br/>Scoped test run"]
         PCF2["frontend-tests (Haiku):<br/>Scoped test run"]
         PCQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
@@ -69,7 +69,7 @@ flowchart TB
         PCC["codex-review (Codex):<br/>Codex CLI review"]
   end
  subgraph PMP_A["↳ spawns in parallel"]
-    direction LR
+    direction TB
         PMPT["backend-tests (Haiku):<br/>Full suite"]
         PMPF2["frontend-tests (Haiku):<br/>Full suite"]
         PMPI["integration-tests (Haiku):<br/>Full stack"]
@@ -88,26 +88,27 @@ flowchart TB
     PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
     PR["/pr (Haiku):<br/>Push branch + create PR"]
     MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up worktree"]
-    SM["/sync-main (Haiku):<br/>Pull main + delete<br/>merged branches"]
+    %% SM["/sync-main (Haiku):<br/>Pull main + delete<br/>merged branches"]
     BS -.-> DS
     DS -.-> IMP
     IMP --> IMPL_A
-    IMPL_A --> PC
-    BG --> PC
+    %% IMPL_A --> PC
+    %% BG --> PC
     PC --> PC_A
     PC_A --> PC_CHECK
     PC_CHECK -->|yes| PCFIX
-    PCFIX --> PC_CHECK
+    PCFIX --> PC_A
     PC_CHECK -->|no| CMT
-    IMP --> PMP
-    BG --> PMP
+    %% FEAT --> PMP
+    %% BG --> PMP
     PMP --> PMP_A
     PMP_A --> PMP_CHECK
     PMP_CHECK -->|yes| PMPFIX
-    PMPFIX --> PMP_CHECK
+    PMPFIX --> PMP_A
     PMP_CHECK -.->|no| PR
-    PR -.-> MRG
-    MRG -.-> SM
+    PMP_CHECK -.->|no| MRG
+    %% PR --> PMP
+    %% MRG --> PMP
 
      IDB:::sonnet
      IBE:::sonnet
@@ -115,7 +116,7 @@ flowchart TB
      BS:::skill-opus
      DS:::skill-opus
      IMP:::skill-sonnet
-     BG:::skill-opus
+    %%  BG:::skill-opus
      PCT:::haiku
      PCF2:::haiku
      PCQ:::haiku
@@ -137,7 +138,7 @@ flowchart TB
      PMPFIX:::sonnet
      PR:::skill-haiku
      MRG:::skill-haiku
-     SM:::skill-haiku
+    %%  SM:::skill-haiku
     classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
     classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
     classDef skill-haiku fill:#1e293b,color:#f8fafc,stroke:#047857,stroke-width:2.5px
