@@ -47,9 +47,9 @@ flowchart LR
     PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
     subgraph PMP_A["↳ spawns in parallel"]
         direction TB
-        PMP_T["tests (Haiku):<br/>Full suites +<br/>integration"]
-        PMP_Q["quality (Haiku):<br/>Lint + auto-fix"]
-        PMP_R["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
+        pmpT["tests (Haiku):<br/>Full suites +<br/>integration"]
+        pmpQ["quality (Haiku):<br/>Lint + auto-fix"]
+        pmpR["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
     end
     PMP_CHECK{issues?}
     PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
@@ -67,9 +67,9 @@ flowchart LR
     PC["/prep-commit (Opus):<br/>Verify before<br/>each commit"]
     subgraph PC_A["↳ spawns in parallel"]
         direction TB
-        PC_T["tests (Haiku):<br/>Scoped test runs"]
-        PC_Q["quality (Haiku):<br/>Lint + auto-fix"]
-        PC_R["reviews (Opus + Codex):<br/>Code review,<br/>Codex CLI"]
+        pcT["tests (Haiku):<br/>Scoped test runs"]
+        pcQ["quality (Haiku):<br/>Lint + auto-fix"]
+        pcR["reviews (Opus + Codex):<br/>Code review,<br/>Codex CLI"]
     end
     PC_CHECK{issues?}
     PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
@@ -108,12 +108,12 @@ flowchart LR
      DS:::skill-opus
      IMP:::skill-sonnet
     %%  BG:::skill-opus
-     PC_T:::haiku
-     PC_Q:::haiku
-     PC_R:::opus
-     PMP_T:::haiku
-     PMP_Q:::haiku
-     PMP_R:::opus
+     pcT:::haiku
+     pcQ:::haiku
+     pcR:::opus
+     pmpT:::haiku
+     pmpQ:::haiku
+     pmpR:::opus
      PC:::skill-opus
      PCFIX:::sonnet
      CMT:::skill-sonnet
