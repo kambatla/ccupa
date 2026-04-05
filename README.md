@@ -47,19 +47,14 @@ flowchart LR
     PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
     subgraph PMP_A["↳ spawns in parallel"]
         direction TB
-        PMPT["backend-tests (Haiku):<br/>Full suite"]
-        PMPF2["frontend-tests (Haiku):<br/>Full suite"]
-        PMPI["integration-tests (Haiku):<br/>Full stack"]
-        PMPQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
-        PMPFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
-        PMPR["reviewer (Opus):<br/>Correctness + quality"]
-        PMPS["review-security (Sonnet):<br/>Security review"]
-        PMPC["codex-review (Codex):<br/>Codex CLI review"]
+        PMP_T["tests (Haiku):<br/>Full suites +<br/>integration"]
+        PMP_Q["quality (Haiku):<br/>Lint + auto-fix"]
+        PMP_R["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
     end
     PMP_CHECK{issues?}
     PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
-    PR["/pr (Haiku):<br/>Push branch + create PR"]
-    MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up worktree"]
+    PR["/pr (Haiku):<br/>Push branch +<br/>create PR"]
+    MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up"]
     PMP --> PMP_A
     PMP_A --> PMP_CHECK
     PMP_CHECK -->|yes| PMPFIX
@@ -69,15 +64,12 @@ flowchart LR
   end
  subgraph PC_FLOW["Prep-Commit → Commit"]
     direction LR
-    PC["/prep-commit (Opus):<br/>Verify before each commit"]
+    PC["/prep-commit (Opus):<br/>Verify before<br/>each commit"]
     subgraph PC_A["↳ spawns in parallel"]
         direction TB
-        PCT["backend-tests (Haiku):<br/>Scoped test run"]
-        PCF2["frontend-tests (Haiku):<br/>Scoped test run"]
-        PCQ["backend-quality (Haiku):<br/>Lint + auto-fix"]
-        PCFQ["frontend-quality (Haiku):<br/>Lint + auto-fix"]
-        PCR["reviewer (Opus):<br/>Code review"]
-        PCC["codex-review (Codex):<br/>Codex CLI review"]
+        PC_T["tests (Haiku):<br/>Scoped test runs"]
+        PC_Q["quality (Haiku):<br/>Lint + auto-fix"]
+        PC_R["reviews (Opus + Codex):<br/>Code review,<br/>Codex CLI"]
     end
     PC_CHECK{issues?}
     PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
@@ -90,15 +82,15 @@ flowchart LR
   end
  subgraph IMPL_A["↳ spawns in parallel (large features)"]
     direction TB
-        IDB["db (Sonnet):<br/>Migrations + DB functions"]
-        IBE["backend (Sonnet):<br/>API endpoints + tests"]
-        IFE["frontend (Sonnet):<br/>UI components + tests"]
+        IDB["db (Sonnet):<br/>Migrations +<br/>DB functions"]
+        IBE["backend (Sonnet):<br/>API endpoints +<br/>tests"]
+        IFE["frontend (Sonnet):<br/>UI components +<br/>tests"]
   end
  subgraph FEAT["Feature / Improvement"]
     direction LR
         BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
-        DS["/design (Opus):<br/>Architect layers,<br/>define test cases, write plan"]
-        IMP["/implement (Sonnet):<br/>Orchestrate implementation"]
+        DS["/design (Opus):<br/>Architect layers,<br/>define test cases,<br/>write plan"]
+        IMP["/implement (Sonnet):<br/>Orchestrate<br/>implementation"]
         IMPL_A
   end
 %%  subgraph BUG["Bug Fix"]
@@ -116,20 +108,12 @@ flowchart LR
      DS:::skill-opus
      IMP:::skill-sonnet
     %%  BG:::skill-opus
-     PCT:::haiku
-     PCF2:::haiku
-     PCQ:::haiku
-     PCFQ:::haiku
-     PCR:::opus
-     PCC:::codex
-     PMPT:::haiku
-     PMPF2:::haiku
-     PMPI:::haiku
-     PMPQ:::haiku
-     PMPFQ:::haiku
-     PMPR:::opus
-     PMPS:::sonnet
-     PMPC:::codex
+     PC_T:::haiku
+     PC_Q:::haiku
+     PC_R:::opus
+     PMP_T:::haiku
+     PMP_Q:::haiku
+     PMP_R:::opus
      PC:::skill-opus
      PCFIX:::sonnet
      CMT:::skill-sonnet
@@ -137,7 +121,6 @@ flowchart LR
      PMPFIX:::sonnet
      PR:::skill-haiku
      MRG:::skill-haiku
-    %%  SM:::skill-haiku
     classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
     classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
     classDef skill-haiku fill:#1e293b,color:#f8fafc,stroke:#047857,stroke-width:2.5px
