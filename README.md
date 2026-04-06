@@ -78,7 +78,7 @@ flowchart LR
     PC_A --> PC_CHECK
     PC_CHECK -->|yes| PCFIX
     PCFIX --> PC_A
-    PC_CHECK -->|no| CMT
+    PC_CHECK -.->|no| CMT
   end
  subgraph IMPL_A["↳ spawns in parallel (large features)"]
     direction TB
