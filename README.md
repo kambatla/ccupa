@@ -36,6 +36,100 @@ Conditional skipping avoids wasted work: quality agents are skipped if `/prep-co
 
 Agents that spawn sub-agents need tool permissions pre-configured in `.claude/settings.local.json` — otherwise they block waiting for user approval. The permissions skill handles this: `/setup` bootstraps permissions during onboarding and preflight checks run before every agent-heavy command. `/learn` reflects on the full session — including scanning for patterns approved at runtime — and proposes improvements to permissions, conventions, and workflows.
 
+## Workflow
+
+Solid arrows are auto-invoked by the source command; dashed arrows require explicit user invocation.
+
+```mermaid
+flowchart LR
+ subgraph PMP_FLOW["Prep-Merge → PR / Merge"]
+    direction LR
+    PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
+    subgraph PMP_A["↳ spawns in parallel"]
+        direction TB
+        pmpT["tests (Haiku):<br/>Full suites +<br/>integration"]
+        pmpQ["quality (Haiku):<br/>Lint + auto-fix"]
+        pmpR["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
+    end
+    PMP_CHECK{issues?}
+    PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
+    PR["/pr (Haiku):<br/>Push branch +<br/>create PR"]
+    MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up"]
+    PMP --> PMP_A
+    PMP_A --> PMP_CHECK
+    PMP_CHECK -->|yes| PMPFIX
+    PMPFIX --> PMP_A
+    PMP_CHECK -.->|no| PR
+    PMP_CHECK -.->|no| MRG
+  end
+ subgraph PC_FLOW["Prep-Commit → Commit"]
+    direction LR
+    PC["/prep-commit (Opus):<br/>Verify before<br/>each commit"]
+    subgraph PC_A["↳ spawns in parallel"]
+        direction TB
+        pcT["tests (Haiku):<br/>Scoped test runs"]
+        pcQ["quality (Haiku):<br/>Lint + auto-fix"]
+        pcR["reviews (Opus + Codex):<br/>Code review,<br/>Codex CLI"]
+    end
+    PC_CHECK{issues?}
+    PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
+    CMT["/commit (Sonnet):<br/>Group by intent,<br/>stage, commit"]
+    PC --> PC_A
+    PC_A --> PC_CHECK
+    PC_CHECK -->|yes| PCFIX
+    PCFIX --> PC_A
+    PC_CHECK -.->|no| CMT
+  end
+ subgraph IMPL_A["↳ spawns in parallel (large features)"]
+    direction TB
+        IDB["db (Sonnet):<br/>Migrations +<br/>DB functions"]
+        IBE["backend (Sonnet):<br/>API endpoints +<br/>tests"]
+        IFE["frontend (Sonnet):<br/>UI components +<br/>tests"]
+  end
+ subgraph FEAT["Feature / Improvement"]
+    direction LR
+        BS["/brainstorm (Opus):<br/>Explore problem space,<br/>challenge assumptions"]
+        DS["/design (Opus):<br/>Architect layers,<br/>define test cases,<br/>write plan"]
+        IMP["/implement (Sonnet):<br/>Orchestrate<br/>implementation"]
+        IMPL_A
+  end
+%%  subgraph BUG["Bug Fix"]
+%%     direction TB
+%%         BG["/bug (Opus):<br/>Trace root cause,<br/>write failing test,<br/>apply fix, verify"]
+%%   end
+    BS -.-> DS
+    DS -.-> IMP
+    IMP --> IMPL_A
+
+     IDB:::sonnet
+     IBE:::sonnet
+     IFE:::sonnet
+     BS:::skill-opus
+     DS:::skill-opus
+     IMP:::skill-sonnet
+    %%  BG:::skill-opus
+     pcT:::haiku
+     pcQ:::haiku
+     pcR:::opus
+     pmpT:::haiku
+     pmpQ:::haiku
+     pmpR:::opus
+     PC:::skill-opus
+     PCFIX:::sonnet
+     CMT:::skill-sonnet
+     PMP:::skill-opus
+     PMPFIX:::sonnet
+     PR:::skill-haiku
+     MRG:::skill-haiku
+    classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
+    classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
+    classDef skill-haiku fill:#1e293b,color:#f8fafc,stroke:#047857,stroke-width:2.5px
+    classDef opus fill:#6d28d9,color:#fff,stroke:none
+    classDef sonnet fill:#1d4ed8,color:#fff,stroke:none
+    classDef haiku fill:#047857,color:#fff,stroke:none
+    classDef codex fill:#800020,color:#fff,stroke:none
+```
+
 ## Workflow commands
 
 | Command | Purpose |
