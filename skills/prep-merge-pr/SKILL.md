@@ -61,9 +61,8 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Stage quality auto-fixes if any: `git add -u` (working tree was clean at start, so this only captures quality agent changes)
 2. Collect results from every agent (tests, quality, and all review reports)
-3. Deduplicate review findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop, and to write the ledger).
-4. **Record initial findings** for the ledger: save per-reviewer counts (total_findings, unique_finds) now — before any fixes. These counts do not change in subsequent iterations.
-5. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
+3. Deduplicate review findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop).
+4. If all checks passed and reviews found nothing significant -> skip to **Step 4: Report**
 6. **User triage gate** — present the deduplicated findings to the user (grouped by severity: blocking vs non-blocking) and ask which to fix now vs defer (e.g., to Linear). Wait for the user's response. Update the finding set to include only the approved-to-fix findings before entering the loop. If the user defers all findings, skip to **Step 4: Report**.
 
 Fix in three sequential phases (max 3 iterations each).
@@ -87,13 +86,6 @@ Fix in three sequential phases (max 3 iterations each).
 - Spawn fixer per `ccupa:review-resolver` skill with Phase C findings
 - Re-run: quality checks only for fixer-touched layers. Do NOT re-run test suites — quality fixes don't affect logic.
 - All pass → exit. 3 iterations exhausted → report remaining in Step 4.
-
-### Step 3.5: Write Review Ledger
-After the loop exits (regardless of outcome):
-1. Collect fixer attribution from all iterations (ACTED/DISMISSED per global finding ID)
-2. Compute per-reviewer: `actioned` and `dismissed` counts from the attribution report
-3. Append one row per reviewer to `~/.claude/review-ledger.csv` per `ccupa:review-tracking` skill
-4. Skip reviewers that were not spawned this run
 
 ### Step 4: Report
 1. Report readiness:

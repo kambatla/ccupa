@@ -8,14 +8,14 @@ disable-model-invocation: true
 Create a well-formatted git commit following project conventions.
 
 ## Input
-"$ARGUMENTS" - Optional context about what was changed.
+"$ARGUMENTS" - Optional context. Pass `--skip-prep` to bypass the `/prep-commit` prerequisite check.
 
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
 ## Prerequisites
-`/prep-commit` must have been run in this conversation. If not, stop and tell the user:
-> Run `/prep-commit` first, then re-run `/commit`.
+If `--skip-prep` is NOT in `$ARGUMENTS`: `/prep-commit` must have been run in this conversation. If not, stop and tell the user:
+> Run `/prep-commit` first, or pass `--skip-prep` to commit without it.
 
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.

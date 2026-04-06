@@ -8,14 +8,14 @@ disable-model-invocation: true
 Rebase on main, verify, merge, and clean up.
 
 ## Input
-"$ARGUMENTS" - Not used.
+"$ARGUMENTS" - Optional. Pass `--skip-prep` to bypass the `/prep-merge-pr` prerequisite check.
 
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
 ## Prerequisites
-`/prep-merge-pr` must have been run in this conversation. If not, stop and tell the user:
-> Run `/prep-merge-pr` first, then re-run `/merge`.
+If `--skip-prep` is NOT in `$ARGUMENTS`: `/prep-merge-pr` must have been run in this conversation. If not, stop and tell the user:
+> Run `/prep-merge-pr` first, or pass `--skip-prep` to merge without it.
 
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.

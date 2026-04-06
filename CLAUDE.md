@@ -38,7 +38,6 @@ skills/                        # Skills — reference docs and workflow commands
   prep-merge-pr/               # Workflow skill (disable-model-invocation: true)
   push/                        # Workflow skill (disable-model-invocation: true)
   ralph/                       # Workflow skill: loop.md, cancel.md, help.md
-  review-roi/                  # Workflow skill (disable-model-invocation: true)
   setup/                       # Workflow skill (disable-model-invocation: true)
   sync-main/                   # Workflow skill (disable-model-invocation: true)
   sync-rules/                  # Workflow skill (disable-model-invocation: true)
@@ -89,7 +88,7 @@ These are the standards this plugin enforces in consuming projects. Coding stand
 Workflow skills follow two patterns based on whether they spawn sub-agents:
 
 **Leaf workflows** (no sub-agents) run as a **Haiku sub-agent** to save cost and avoid context pollution in the main session:
-`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/review-roi`, `/sync-rules`
+`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
 `/prep-commit`, `/prep-merge-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
