@@ -56,9 +56,9 @@ Create a team named `implement` and spawn teammates in a **single message**:
 
 | Teammate | Model | Scope | Instructions |
 |----------|-------|-------|-------------|
-| `db` | Sonnet | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions. Run migration to verify. |
-| `backend` | Sonnet | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards. |
-| `frontend` | Sonnet | Frontend source + tests | Implement UI components and state logic per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards. |
+| `db` | Sonnet | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions rules. Run migration to verify. |
+| `backend` | Sonnet | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards rules. |
+| `frontend` | Sonnet | Frontend source + tests | Implement UI components and state logic per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards rules. |
 
 Skip agents for layers with no work. Each agent follows a **define -> test -> implement** order:
 1. Define interfaces (function signatures, API routes, component props) per the plan

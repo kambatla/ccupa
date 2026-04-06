@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-This is a **Claude Code plugin** (`ccupa`) — a collection of skills and slash commands that define development workflow conventions. It is not an application codebase. It gets installed as a plugin and provides standards for projects that use it.
+This is a **Claude Code plugin** (`ccupa`) — a collection of rules, skills, and slash commands that define development workflow conventions. It is not an application codebase. It gets installed as a plugin and provides standards for projects that use it.
 
 The plugin is defined in `.claude-plugin/plugin.json`.
 
@@ -12,9 +12,14 @@ The plugin is defined in `.claude-plugin/plugin.json`.
 
 ```
 .claude-plugin/plugin.json     # Plugin manifest
-skills/                        # All skills — reference docs and workflow commands
-  coding-standards/            # SKILL.md routes to python.md or react-typescript.md
-  db-conventions/              # SKILL.md routes to supabase.md
+rules/                         # Convention rules — synced to consuming projects via /sync-rules
+  git-operations.md            # Always active — points to git-conventions skill
+  coding-standards.md          # Always active — general principles (fix all failures, tests as contracts)
+  coding-standards-python.md   # Glob: **/*.py
+  coding-standards-react-ts.md # Glob: **/*.{ts,tsx,js,jsx}
+  db-conventions.md            # Always active — critical rules, migration workflow, schema design
+  db-conventions-supabase.md   # Glob: **/supabase/**, **/*.sql
+skills/                        # Skills — reference docs and workflow commands
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
   git-conventions/             # SKILL.md (single file, no sub-routes)
   permissions/                 # SKILL.md routes to preflight.md and review.md
@@ -36,6 +41,7 @@ skills/                        # All skills — reference docs and workflow comm
   review-roi/                  # Workflow skill (disable-model-invocation: true)
   setup/                       # Workflow skill (disable-model-invocation: true)
   sync-main/                   # Workflow skill (disable-model-invocation: true)
+  sync-rules/                  # Workflow skill (disable-model-invocation: true)
 scripts/                       # Shared shell scripts invoked by workflow skills
   setup-worktree.sh            # Create worktree, check gitignore, symlink config files
   teardown-worktree.sh         # Remove worktree and delete branch after merge
@@ -43,7 +49,9 @@ scripts/                       # Shared shell scripts invoked by workflow skills
   setup-ralph-loop.sh          # Initialize Ralph loop state file
 ```
 
-**Reference skills** (auto-invoked by context): coding-standards, db-conventions, deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
+**Rules** (synced to consuming projects): Convention rules in `rules/` define coding standards, database conventions, and git operation guidance. Rules can't be served directly from a plugin — `/sync-rules` copies them to the consuming project's `.claude/rules/` directory. Path-scoped rules load only when working with matching files.
+
+**Reference skills** (auto-invoked by context): deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
 
 **Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Scripts in `scripts/` handle deterministic shell sequences; judgment and orchestration stay in the skill instructions.
 
@@ -51,7 +59,7 @@ scripts/                       # Shared shell scripts invoked by workflow skills
 
 The workflow skills form a feature development pipeline:
 
-0. `/setup` — Onboard a consuming project: configure permissions, bootstrap settings
+0. `/setup` — Onboard a consuming project: configure permissions, bootstrap settings, sync rules
 1. `/brainstorm` — Explore problem space, challenge assumptions, recommend direction
 2. `/design` — Architect layer-by-layer (storage → backend → frontend), define test cases during design, Codex design review
 3. `/implement` — Execute the plan (sequential or parallel with agent teams), follows define→test→implement order
@@ -67,14 +75,14 @@ The workflow skills form a feature development pipeline:
 
 ## Key Conventions Defined by This Plugin
 
-These are the standards this plugin enforces in consuming projects:
+These are the standards this plugin enforces in consuming projects. Coding standards and database conventions are delivered as **rules** (synced via `/sync-rules`). Git conventions and permissions are delivered as **skills**.
 
-- **Git**: `<type>: <description>` commit format, HEREDOC for multi-line messages, no AI attribution, branch naming `<type>-<2-3-word-desc>`
-- **Python/FastAPI**: Auth via `Depends(get_current_user)`, database via RPC wrappers (never raw SQL), Pydantic models, pytest with real DB + transaction rollback
-- **React/TypeScript**: `React.FC<Props>`, Context+Hook state pattern, semantic Tailwind tokens (no hardcoded colors), shared UI components, Vitest + RTL with `userEvent`
-- **Database**: Migration-first workflow (never `db reset`), RPC functions with `_rpc` suffix, `p_*` params, `result_*` returns, organization scoping for multi-tenancy
-- **Testing**: 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
-- **Permissions**: Preflight checks before spawning agents, post-session review of runtime-approved patterns, `/setup` for initial configuration
+- **Git** (skill): `<type>: <description>` commit format, HEREDOC for multi-line messages, no AI attribution, branch naming `<type>-<2-3-word-desc>`
+- **Python/FastAPI** (rule, `**/*.py`): Auth via `Depends(get_current_user)`, database via RPC wrappers (never raw SQL), Pydantic models, pytest with real DB + transaction rollback
+- **React/TypeScript** (rule, `**/*.{ts,tsx,js,jsx}`): `React.FC<Props>`, Context+Hook state pattern, semantic Tailwind tokens (no hardcoded colors), shared UI components, Vitest + RTL with `userEvent`
+- **Database** (rule): Migration-first workflow (never `db reset`), RPC functions with `_rpc` suffix, `p_*` params, `result_*` returns, organization scoping for multi-tenancy
+- **Testing** (rule): 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
+- **Permissions** (skill): Preflight checks before spawning agents, post-session review of runtime-approved patterns, `/setup` for initial configuration
 
 ## Agent Model Selection
 
@@ -96,8 +104,9 @@ Issues are tracked on GitHub: https://github.com/kambatla/ccupa/issues
 ## Editing Guidelines
 
 When modifying this plugin:
-- Reference skills are reference docs — keep them scannable with tables, code blocks, and clear rules
-- Workflow skills define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
+- **Rules** define conventions (coding standards, DB patterns) — keep them scannable with tables, code blocks, and clear rules. Use `globs` in frontmatter for path scoping. Only document what the model would get wrong without instruction — each line should pass the test: "Would Claude do something different or wrong without this line?"
+- **Reference skills** are reference docs — keep them scannable with tables, code blocks, and clear rules
+- **Workflow skills** define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
 - Each SKILL.md is an entrypoint — reference skill SKILL.mds should describe when to use the skill and link to sub-files; workflow skill SKILL.mds contain the full workflow
 - Workflow skills reference each other (e.g., `/commit` calls `/prep-commit`, `/pr` calls `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
 - Workflow skills specify model choices per the Agent Model Selection table above — preserve these when editing

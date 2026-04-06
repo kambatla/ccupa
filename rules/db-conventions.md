@@ -1,25 +1,10 @@
 ---
-name: db-conventions
-description: Database conventions and migration workflows. Covers migration-first development, schema design principles, multi-tenancy patterns, and function/procedure patterns. See supabase.md for Supabase-specific workflows.
+description: Database conventions — migration-first workflow, schema design, multi-tenancy, function patterns. Critical rules that apply to any code touching the database.
 ---
 
-# Database Conventions Skill
+# Database Conventions
 
 Generic database conventions for migration-first development.
-
-## When to Use This Skill
-
-Invoke this skill when:
-- Creating or modifying database schema (tables, columns, indexes, constraints)
-- Adding or updating database functions (stored procedures, RPCs)
-- Debugging database operations
-- User asks about database changes or "how do I query X"
-
-## Platform-Specific Files
-
-| File | Use When |
-|------|----------|
-| `supabase.md` | Using Supabase (CLI, RPC wrappers, migration workflow) |
 
 ## Critical Rules
 

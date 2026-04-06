@@ -1,20 +1,8 @@
 ---
-name: coding-standards
-description: Code patterns, conventions, and testing standards. Routes to language-specific files for Python/FastAPI or React/TypeScript. Use when writing new code, reviewing code, or making architectural decisions.
+description: General coding principles — fix all failures regardless of origin, treat tests as contract verification.
 ---
 
-# Coding Standards Skill
-
-This skill defines how code is written and tested. Follow these patterns for consistency.
-
-## When to Use This Skill
-
-Claude should invoke this skill when:
-- Writing new components, endpoints, hooks, or services
-- Writing or reviewing tests
-- Reviewing code for pattern compliance
-- Deciding how to structure new functionality
-- Unsure about naming, error handling, or file placement
+# Coding Standards
 
 ## Fix All Failures, Not Just Yours
 
@@ -31,12 +19,3 @@ When a test fails, a contract is violated. Diagnose before acting:
 3. **Is the violation a bug?** If the contract is important and unexpectedly broken, fix the code — not the test.
 
 **Default:** If the situation is ambiguous, assume step 3 — the contract matters and the code is wrong.
-
-## Language-Specific Files
-
-| File | Use When |
-|------|----------|
-| `python.md` | Writing backend code (FastAPI, pytest, Python) |
-| `react-typescript.md` | Writing frontend code (React, TypeScript, vitest) |
-
-Each file covers both **coding standards** and **testing patterns** for its language.

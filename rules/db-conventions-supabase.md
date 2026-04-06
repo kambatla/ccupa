@@ -1,3 +1,10 @@
+---
+description: Supabase-specific database patterns — CLI workflow, RPC naming conventions, function templates, performance tips.
+globs:
+  - "**/supabase/**"
+  - "**/*.sql"
+---
+
 # Supabase Database Patterns
 
 Supabase-specific workflows, RPC conventions, and migration patterns.

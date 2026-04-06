@@ -1,3 +1,9 @@
+---
+description: React/TypeScript coding standards — UI components, design tokens, state management, testing with Vitest + RTL.
+globs:
+  - "**/*.{ts,tsx,js,jsx}"
+---
+
 # React / TypeScript Standards
 
 Project-specific patterns for the React frontend. General React/TypeScript best practices are not repeated here.
@@ -69,7 +75,7 @@ export const useFeature = () => {
 - RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - `userEvent` over `fireEvent`
 - Test files in `__tests__/` next to source
-- See "Tests Are Contract Verification" in SKILL.md for handling test failures
+- See coding-standards rule for handling test failures
 
 ## Tooling
 

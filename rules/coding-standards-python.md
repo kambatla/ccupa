@@ -1,3 +1,9 @@
+---
+description: Python/FastAPI coding standards — auth patterns, database access, testing with pytest, tooling.
+globs:
+  - "**/*.py"
+---
+
 # Python / FastAPI Standards
 
 Project-specific patterns for the Python backend. General Python/FastAPI best practices are not repeated here.
@@ -10,7 +16,7 @@ Project-specific patterns for the Python backend. General Python/FastAPI best pr
 
 ## Database Access
 
-Always use RPC wrappers — never raw SQL in endpoint code. See `db-conventions` skill for implementation details.
+Always use RPC wrappers — never raw SQL in endpoint code. See the db-conventions and db-conventions-supabase rules for implementation details.
 
 ## Testing (pytest)
 
@@ -19,7 +25,7 @@ Always use RPC wrappers — never raw SQL in endpoint code. See `db-conventions`
 - Test naming: `test_<what>_<condition>_<expected>`
 - Group related tests in classes
 - Type hints always on function signatures
-- See "Tests Are Contract Verification" in SKILL.md for handling test failures
+- See coding-standards rule for handling test failures
 
 ## Tooling
 

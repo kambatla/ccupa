@@ -34,7 +34,7 @@ Enter plan mode to explore the codebase and understand the bug before writing an
 ### Step 3: Regression Test
 Write the test **before** implementing the fix.
 
-**Test requirements** (following coding-standards for the affected side):
+**Test requirements** (following coding-standards rules for the affected side):
 - The test must assert the **correct** behavior (what the code should do after the fix)
 - Include a comment linking to the bug context (branch name, PR, or description)
 
@@ -45,7 +45,7 @@ Write the test **before** implementing the fix.
 ### Step 4: Implement Fix
 1. Apply the minimal fix
 2. Run the regression test -> confirm it **passes**
-3. Run the full test suite for the affected side(s) per coding-standards
+3. Run the full test suite for the affected side(s) per coding-standards rules
 4. Fix any collateral breakage
 
 ### Step 5: Manual Test
