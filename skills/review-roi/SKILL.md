@@ -7,11 +7,11 @@ disable-model-invocation: true
 
 Analyze `~/.claude/review-ledger.csv` to surface which reviewers are earning their cost.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Haiku — reading a CSV and computing aggregates is mechanical).
-
 ## Input
 "$ARGUMENTS" - Optional project name to filter results. If empty, report across all projects.
+
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
 ## Process
 

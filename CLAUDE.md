@@ -65,10 +65,10 @@ The workflow skills form a feature development pipeline:
 3. `/implement` — Execute the plan (sequential or parallel with agent teams), follows define→test→implement order
 4. `/bug` — Investigate, write regression test (must fail first), fix, prove fix works
 5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review + Codex review; fix issues
-6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC
+6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC (requires `/prep-commit`)
 7. `/prep-merge-pr` — Full test suites, quality checks, 2 specialized reviews (unified correctness+quality, security) + Codex review; fix issues
-8. `/pr` — Push branch, create PR via `gh` with structured body
-9. `/merge` — Rebase on main, run `/prep-merge-pr`, merge, delete branch
+8. `/pr` — Push branch, create PR via `gh` with structured body (requires `/prep-merge-pr`)
+9. `/merge` — Rebase on main, merge, delete branch (requires `/prep-merge-pr`)
 10. `/sync-main` — Pull latest main, delete merged local branches
 11. `/push` — Push main to all configured remotes
 12. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
@@ -84,18 +84,30 @@ These are the standards this plugin enforces in consuming projects. Coding stand
 - **Testing** (rule): 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - **Permissions** (skill): Preflight checks before spawning agents, post-session review of runtime-approved patterns, `/setup` for initial configuration
 
-## Agent Model Selection
+## Execution Model
 
-When spawning agents, match the model to the task complexity:
+Workflow skills follow two patterns based on whether they spawn sub-agents:
+
+**Leaf workflows** (no sub-agents) run as a **Haiku sub-agent** to save cost and avoid context pollution in the main session:
+`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/review-roi`, `/sync-rules`
+
+**Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
+`/prep-commit`, `/prep-merge-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
+
+**Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` and `/merge` require `/prep-merge-pr`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
+
+## Sub-Agent Model Selection
+
+When orchestrator workflows spawn sub-agents, match the model to the task:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | `/brainstorm`, `/design`, `/learn`, plan mode, `/prep-commit` and `/prep-merge-pr` orchestrators, Claude code reviews (`reviewer` in both prep-commit and prep-merge-pr) |
-| **Sonnet** | `/commit` (grouping changes by intent requires judgment), `/implement` (orchestrator + implementation teammates), `review-resolver` fixer agents, `review-security` in prep-merge-pr |
-| **Haiku** | Test runners, quality/formatting checks, git workflows (`/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/review-roi`), `codex-review` agent wrappers |
+| **Opus** | Claude code reviews (`reviewer` in prep-commit and prep-merge-pr) |
+| **Sonnet** | Implementation teammates (`db`, `backend`, `frontend`), `review-resolver` fixer agents, `review-security` in prep-merge-pr |
+| **Haiku** | Test runners, quality/formatting checks, `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
 
-**Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy work (design, review). Sonnet for implementation that requires understanding but not deep reasoning. Haiku for mechanical tasks with clear instructions.
+**Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy review. Sonnet for implementation that requires understanding. Haiku for mechanical tasks with clear instructions.
 
 ## Issue Tracking
 
@@ -108,6 +120,6 @@ When modifying this plugin:
 - **Reference skills** are reference docs — keep them scannable with tables, code blocks, and clear rules
 - **Workflow skills** define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
 - Each SKILL.md is an entrypoint — reference skill SKILL.mds should describe when to use the skill and link to sub-files; workflow skill SKILL.mds contain the full workflow
-- Workflow skills reference each other (e.g., `/commit` calls `/prep-commit`, `/pr` calls `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
-- Workflow skills specify model choices per the Agent Model Selection table above — preserve these when editing
+- Workflow skills have prerequisite chains (e.g., `/commit` requires `/prep-commit`, `/pr` and `/merge` require `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
+- Leaf workflows specify `## Execution: Run as a Haiku sub-agent` — preserve this when adding new leaf workflows. Orchestrator workflows run in the current session with sub-agent model choices per the Sub-Agent Model Selection table.
 - Scripts in `scripts/` handle deterministic shell sequences — keep them focused and single-purpose; invoke via `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`

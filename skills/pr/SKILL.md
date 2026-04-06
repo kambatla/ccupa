@@ -7,11 +7,15 @@ disable-model-invocation: true
 
 Create a pull request with a comprehensive description following project conventions.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Haiku — it's a straightforward git workflow).
-
 ## Input
 "$ARGUMENTS" - Optional context about the PR.
+
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
+
+## Prerequisites
+`/prep-merge-pr` must have been run in this conversation. If not, stop and tell the user:
+> Run `/prep-merge-pr` first, then re-run `/pr`.
 
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
@@ -20,20 +24,16 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 ## Process
 
-1. **Check if `/prep-merge-pr` was already run** in this conversation:
-   - If yes, skip to step 2
-   - If no, run `/prep-merge-pr` first (pass `$ARGUMENTS` through). Only proceed to step 2 if all checks pass.
-
-2. **Review branch:**
+1. **Review branch:**
    - Run `git log main..HEAD --oneline` to see all commits
    - Run `git diff main...HEAD` to see full diff
    - Identify changed files and their purpose
 
-3. **Push if needed:**
+2. **Push if needed:**
    - Check if current branch tracks a remote
    - Push with `-u` flag if not yet pushed — set `dangerouslyDisableSandbox: true` on this call (SSH is blocked by sandbox)
 
-4. **Create PR:**
+3. **Create PR:**
    - Title: `<type>: <description>` per git-conventions
    - Body: Summary bullets, Test plan checklist
    - Use HEREDOC format for the body
@@ -53,5 +53,5 @@ EOF
 )"
 ```
 
-5. **Report:**
+4. **Report:**
    - Return the PR URL

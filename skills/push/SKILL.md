@@ -7,11 +7,11 @@ disable-model-invocation: true
 
 Push the main branch to every configured remote.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Haiku — it's a straightforward git workflow).
-
 ## Input
 "$ARGUMENTS" - Not used.
+
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.

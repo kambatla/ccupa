@@ -7,9 +7,6 @@ disable-model-invocation: true
 
 Run full test suites, code quality checks, and specialized code reviews in parallel using agents, then fix issues and verify.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Opus — synthesizing multi-reviewer findings and coordinating the fix-verify loop requires deep judgment).
-
 ## Input
 "$ARGUMENTS" - Optional context about what was changed in the branch.
 
@@ -99,8 +96,7 @@ After the loop exits (regardless of outcome):
 4. Skip reviewers that were not spawned this run
 
 ### Step 4: Report
-1. If there are uncommitted fix changes, commit them using the `/commit` command
-2. Report readiness:
+1. Report readiness:
    - Summary of all branch changes
    - Issues found and fixed
    - Confirmation that full test suites and quality checks pass

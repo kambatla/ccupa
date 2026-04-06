@@ -7,17 +7,19 @@ disable-model-invocation: true
 
 Rebase on main, verify, merge, and clean up.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Haiku — mechanical git orchestration; model selection for checks and reviews is handled by `/prep-merge-pr`).
-
 ## Input
 "$ARGUMENTS" - Not used.
+
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
+
+## Prerequisites
+`/prep-merge-pr` must have been run in this conversation. If not, stop and tell the user:
+> Run `/prep-merge-pr` first, then re-run `/merge`.
 
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
 - `Bash(git *)`
-
-Note: `/prep-merge-pr` (called in Step 2) handles its own permission preflight.
 
 ## Process
 
@@ -35,13 +37,8 @@ Stay in the feature worktree (or current directory if in the main checkout) for 
 4. Rebase the feature branch onto origin/main: `git rebase origin/main`
 5. Resolve any conflicts (ask user if non-trivial)
 
-### Step 2: Pre-Merge Verification
-Run `/prep-merge-pr` to verify the rebased branch is clean:
-- Full test suite (frontend + backend)
-- Lint and build checks
-- Code review of the diff
-
-If any checks fail, stop and report — do NOT merge a broken branch.
+### Step 2: Verify Pre-Merge Checks
+Confirm that `/prep-merge-pr` was already run (this is enforced by the Prerequisites section). Do NOT run it here — the user is responsible for running it before `/merge`.
 
 ### Step 3: Merge and Clean Up
 1. Get the main worktree path: `git worktree list --porcelain | sed -n '1s/^worktree //p'`

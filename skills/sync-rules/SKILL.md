@@ -8,6 +8,9 @@ disable-model-invocation: true
 
 Copies the latest ccupa convention rules from this plugin into the consuming project so they are loaded as Claude Code rules.
 
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
+
 ## Why This Exists
 
 Rules (unlike skills) cannot be served directly from a plugin — they must live in the project's `.claude/rules/` directory. This command bridges that gap by syncing the plugin's rule files into the project.

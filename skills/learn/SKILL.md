@@ -5,8 +5,6 @@ disable-model-invocation: true
 
 # Session Learn
 
-**Model: Opus** — reasoning about session patterns and proposing convention changes requires deep judgment.
-
 Reflect on the current session and propose improvements to permissions, conventions, and workflows.
 
 ## Input

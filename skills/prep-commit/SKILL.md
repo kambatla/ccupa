@@ -7,9 +7,6 @@ disable-model-invocation: true
 
 Run tests, code quality checks, and a code review in parallel using agents, then fix issues and verify.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Opus — synthesizing multi-reviewer findings and coordinating the fix-verify loop requires deep judgment).
-
 ## Input
 "$ARGUMENTS" - Optional context about what was changed in the branch. Include `--bugfix` to trigger bug fix verification (stash/test fail/unstash/test pass).
 

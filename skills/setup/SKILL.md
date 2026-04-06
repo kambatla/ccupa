@@ -7,11 +7,11 @@ disable-model-invocation: true
 
 Onboard a consuming project with tool permissions and conventions. Interactive, one-time.
 
-## Execution
-Run this entire workflow as a separate Task agent (use Haiku — it's a mechanical onboarding workflow).
-
 ## Input
 "$ARGUMENTS" - Not used.
+
+## Execution
+Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
 ## Process
 
