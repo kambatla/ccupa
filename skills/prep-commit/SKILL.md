@@ -85,6 +85,7 @@ Fix in two sequential phases (max 3 iterations each).
    - Summary of what was checked
    - Any issues found and fixed
    - Confirmation that all checks pass
+2. Stop. Do NOT run `/commit` automatically — the user decides when to commit.
 
 ## Approach
 - **Maximum parallelism**: up to 6 agents working simultaneously in Step 2
