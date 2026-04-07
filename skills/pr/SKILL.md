@@ -13,16 +13,15 @@ Create a pull request with a comprehensive description following project convent
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
-## Prerequisites
-`/prep-merge-pr` must have been run in this conversation. If not, stop and tell the user:
-> Run `/prep-merge-pr` first, then re-run `/pr`.
-
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
 - `Bash(git *)`
 - `Bash(gh *)`
 
 ## Process
+
+0. **Prerequisites:** confirm `/prep-merge-pr` was run in this conversation. If not, stop:
+   > Run `/prep-merge-pr` first, then re-run `/pr`.
 
 1. **Review branch:**
    - Run `git log main..HEAD --oneline` to see all commits

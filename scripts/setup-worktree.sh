@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
-BRANCH="${1:?Usage: setup-worktree.sh <branch>}"
+BRANCH="${1:?Usage: setup-worktree.sh <branch> [--existing]}"
+if [[ "$BRANCH" == --* ]]; then
+    echo "ERROR: First argument must be the branch name, not a flag." >&2
+    exit 1
+fi
+EXISTING=false
+for arg in "${@:2}"; do
+    [[ "$arg" == "--existing" ]] && EXISTING=true
+done
 
 # Ensure worktrees/ is gitignored
 if ! grep -qxF 'worktrees/' .gitignore 2>/dev/null; then
@@ -13,18 +21,27 @@ if ! grep -qxF 'worktrees/' .gitignore 2>/dev/null; then
     git commit -m "chore: ignore worktrees directory"
 fi
 
-# Create the worktree and branch
+# Create the worktree
 mkdir -p worktrees/
-git worktree add "worktrees/$BRANCH" -b "$BRANCH"
+if $EXISTING; then
+    git worktree add "worktrees/$BRANCH" "$BRANCH"
+else
+    git worktree add "worktrees/$BRANCH" -b "$BRANCH"
+fi
 
-# Symlink gitignored config files into the worktree
+# Symlink gitignored config files at any depth
 LINKED=0
 while IFS= read -r file; do
-    [[ "$file" == *"/"* ]] && continue  # skip subdirectory files
-    case "$file" in
+    # Skip entries inside other worktrees (worktrees/ is gitignored, so all its contents appear here)
+    [[ "$file" == worktrees/* ]] && continue
+    case "$(basename "$file")" in
         .env*|.tokens*|*.local|*.pem|*.key)
             if [ -f "$file" ]; then
-                ln -sf "../../$file" "worktrees/$BRANCH/$file"
+                depth=$(awk -F/ '{print NF-1}' <<< "$file")
+                prefix=$(printf '../%.0s' $(seq 1 $((depth + 2))))
+                dest="worktrees/$BRANCH/$file"
+                mkdir -p "$(dirname "$dest")"
+                ln -sf "${prefix}${file}" "$dest"
                 echo "  linked: $file"
                 LINKED=$((LINKED + 1))
             fi
@@ -33,4 +50,11 @@ while IFS= read -r file; do
 done < <(git ls-files --others --ignored --exclude-standard 2>/dev/null)
 
 [ "$LINKED" -eq 0 ] && echo "  (no config files to link)"
+
+# Symlink plans/ if it exists
+if [ -d "plans" ]; then
+    ln -sf "../../plans" "worktrees/$BRANCH/plans"
+    echo "  linked: plans/"
+fi
+
 echo "Worktree ready: worktrees/$BRANCH"

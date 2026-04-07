@@ -241,7 +241,7 @@ build/
 ### After PR Merged
 1. Delete feature branch locally: `git branch -d feature-name`
 2. Delete remote branch: `git push origin --delete feature-name` (or via GitHub UI) — see [Remote Operations and Sandbox](#remote-operations-and-sandbox)
-3. Pull latest main: `git checkout main && git pull` — see [Remote Operations and Sandbox](#remote-operations-and-sandbox)
+3. Pull latest main: `git checkout main` then `git pull` — see [Remote Operations and Sandbox](#remote-operations-and-sandbox)
 
 ## Remote Operations and Sandbox
 

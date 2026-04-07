@@ -8,7 +8,7 @@ Run this procedure after a command completes. Goal: capture patterns that were a
 
 Scan the conversation history for tool approval prompts where the user granted permission at runtime. These appear as permission prompts showing the tool name and pattern, followed by the user's approval.
 
-Extract the tool name and pattern from each approval (e.g., `Bash(cd backend && ruff*)` from a prompt about running ruff).
+Extract the tool name and pattern from each approval (e.g., `Bash(ruff*)` from a prompt about running ruff).
 
 **Caveat:** In long sessions, earlier approvals may have been compressed out of context. This procedure captures what's visible — it won't catch everything.
 
@@ -30,7 +30,7 @@ For each extracted pattern, classify as:
 
 | Pattern | How it was used |
 |---------|-----------------|
-| `Bash(cd backend && ruff*)` | Backend quality checks |
+| `Bash(ruff*)` | Backend quality checks |
 
 2. Offer to add them to `.claude/settings.local.json`
 3. If user approves, write the updated file

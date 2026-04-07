@@ -41,11 +41,14 @@ skills/                        # Skills — reference docs and workflow commands
   setup/                       # Workflow skill (disable-model-invocation: true)
   sync-main/                   # Workflow skill (disable-model-invocation: true)
   sync-rules/                  # Workflow skill (disable-model-invocation: true)
+  create-worktree/             # Workflow skill (disable-model-invocation: true)
+  delete-worktree/             # Workflow skill (disable-model-invocation: true)
 scripts/                       # Shared shell scripts invoked by workflow skills
   setup-worktree.sh            # Create worktree, check gitignore, symlink config files
-  teardown-worktree.sh         # Remove worktree and delete branch after merge
+  teardown-worktree.sh         # Remove worktree, preserving branch (commits WIP if dirty)
   push-all-remotes.sh          # Push main to all configured remotes
   setup-ralph-loop.sh          # Initialize Ralph loop state file
+  run-codex-review.sh          # Invoke codex review with branch+timestamp output path
 ```
 
 **Rules** (synced to consuming projects): Convention rules in `rules/` define coding standards, database conventions, and git operation guidance. Rules can't be served directly from a plugin — `/sync-rules` copies them to the consuming project's `.claude/rules/` directory. Path-scoped rules load only when working with matching files.
@@ -72,6 +75,10 @@ The workflow skills form a feature development pipeline:
 11. `/push` — Push main to all configured remotes
 12. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
 
+**Worktree utilities** (optional, used when parallel isolation is needed):
+- `/create-worktree` — Attach a worktree to an existing branch
+- `/delete-worktree` — Remove the worktree, preserve the branch (run before `/merge`)
+
 ## Key Conventions Defined by This Plugin
 
 These are the standards this plugin enforces in consuming projects. Coding standards and database conventions are delivered as **rules** (synced via `/sync-rules`). Git conventions and permissions are delivered as **skills**.
@@ -88,7 +95,7 @@ These are the standards this plugin enforces in consuming projects. Coding stand
 Workflow skills follow two patterns based on whether they spawn sub-agents:
 
 **Leaf workflows** (no sub-agents) run as a **Haiku sub-agent** to save cost and avoid context pollution in the main session:
-`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`
+`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
 `/prep-commit`, `/prep-merge-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`

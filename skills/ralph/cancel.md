@@ -2,7 +2,7 @@
 
 To cancel the Ralph loop:
 
-1. Check if `.claude/ralph-loop.local.md` exists using Bash: `test -f .claude/ralph-loop.local.md && echo "EXISTS" || echo "NOT_FOUND"`
+1. Check if `.claude/ralph-loop.local.md` exists using the Glob tool with pattern `.claude/ralph-loop.local.md`
 
 2. **If NOT_FOUND**: Say "No active Ralph loop found."
 

@@ -13,15 +13,14 @@ Create a well-formatted git commit following project conventions.
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
-## Prerequisites
-If `--skip-prep` is NOT in `$ARGUMENTS`: `/prep-commit` must have been run in this conversation. If not, stop and tell the user:
-> Run `/prep-commit` first, or pass `--skip-prep` to commit without it.
-
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
 - `Bash(git *)`
 
 ## Process
+
+0. **Prerequisites:** if `--skip-prep` is NOT in `$ARGUMENTS`, confirm `/prep-commit` was run in this conversation. If not, stop:
+   > Run `/prep-commit` first, or pass `--skip-prep` to commit without it.
 
 1. **Inspect state:**
    - Run `git status` to see all changed files

@@ -14,12 +14,12 @@ Check `which codex` before invoking. If not installed, skip the Codex review and
 ## Standard Invocation
 
 ```
-codex exec --sandbox read-only "<prompt>"
+"${CLAUDE_PLUGIN_ROOT}/scripts/run-codex-review.sh" "<prompt>"
 ```
 
-| Flag | Purpose |
-|------|---------|
-| `--sandbox read-only` | Read access to repo, no writes |
+The script handles branch name, timestamp, and output path automatically. It writes the result to `$TMPDIR/codex-review-<branch>-<timestamp>.md` and cats it to stdout.
+
+**Sandbox:** set `dangerouslyDisableSandbox: true` on this Bash call — codex uses macOS system APIs (`SCDynamicStore`) that are blocked by Claude Code's sandbox.
 
 No `-m` flag — defaults to `gpt-codex-5`.
 

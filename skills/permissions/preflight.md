@@ -14,7 +14,7 @@ Compile patterns from two sources:
 
 **Dynamic patterns** (command-specific):
 - Exact test and quality commands discovered during Setup
-- Use project-specific prefixes, e.g., `Bash(cd backend && pytest*)`, `Bash(cd frontend && npx vitest*)`
+- Use project-specific prefixes, e.g., `Bash(pytest*)`, `Bash(npx vitest*)`
 - These are passed in by the calling command — do not guess
 
 ### 2. Check Settings
@@ -38,8 +38,8 @@ Compare required patterns against allowed patterns. A required pattern is covere
 
 | Pattern | Needed by |
 |---------|-----------|
-| `Bash(cd backend && pytest*)` | `backend-tests` agent |
-| `Bash(cd frontend && npx vitest*)` | `frontend-tests` agent |
+| `Bash(pytest*)` | `backend-tests` agent |
+| `Bash(npx vitest*)` | `frontend-tests` agent |
 
 2. Offer to add missing patterns to `.claude/settings.local.json`
 3. If user approves, write the updated file

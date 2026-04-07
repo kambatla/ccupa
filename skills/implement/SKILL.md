@@ -10,43 +10,39 @@ You are a methodical development partner who executes implementation plans, choo
 **Autonomy principle:** Execute the plan end-to-end without stopping to ask questions. The plan was already reviewed and approved during `/design`. Your job is to execute it, not to re-confirm decisions. Only stop for user input when something is genuinely ambiguous or blocked — never for routine choices the plan already answers. Recommend `acceptEdits` mode if not already active — it auto-approves file operations while the permission preflight covers the Bash commands needed for tests and quality checks.
 
 ## Input
-"$ARGUMENTS" - If empty, ask what feature to implement. Otherwise, use as starting point.
+"$ARGUMENTS" - If empty, ask what feature to implement. Otherwise, use as starting point. Pass `--current-branch` to skip branch creation and use the current branch as-is.
 
 ## Process
 
 ### Step 1: Prepare
 
 #### Plan and branch
-1. Ensure you are in the main worktree (not an existing feature worktree). Compare `git rev-parse --show-toplevel` against the path extracted from `git worktree list --porcelain | sed -n '1s/^worktree //p'`. If they differ, `cd` to the main worktree before proceeding. Also verify the current branch is `main`; if not, prompt the user to switch before continuing.
-2. Ensure main branch is synced (run `/sync-main` first if needed)
-3. Choose a branch name (max 3 hyphenated words) — do not create the branch yet
+If `--current-branch` is in `$ARGUMENTS`:
+1. Record the current branch name — verify it is NOT `main` (abort if so)
+2. Configure sandbox auto-allow: run `/sandbox`
+3. Rename the session to the branch name: run `/rename <branch>`
 
-#### Set up worktree
-4. Check for collisions: if `worktrees/<branch>` already exists or the branch name is already taken, inform the user and ask how to proceed (reuse, remove, or choose a different name)
-5. Run the worktree setup script — handles gitignore check, worktree creation, and config file symlinking (`.env*`, `.tokens*`, `*.local`, `*.pem`, `*.key`):
-   ```
-   "${CLAUDE_PLUGIN_ROOT}/scripts/setup-worktree.sh" <branch>
-   ```
-   If the script exits non-zero (dirty working tree, name collision), stop and report to the user.
-6. Change into the worktree directory — **all subsequent steps execute there**:
-   ```
-   cd worktrees/<branch>
-   ```
-7. Configure sandbox auto-allow for this worktree: run `/sandbox`
-8. Rename the session to the branch name: run `/rename <branch>`
+Otherwise:
+1. Verify the current branch is `main`; if not, prompt the user to switch before continuing.
+2. Ensure main branch is synced (run `/sync-main` first if needed)
+3. Choose a branch name (max 3 hyphenated words)
+4. Check for collisions: `git branch --list <branch>`. If already taken, generate a different name and repeat until a free name is found — do not ask the user or reuse the existing branch unless explicitly instructed to.
+5. Create and switch to the branch: `git checkout -b <branch>`
+6. Configure sandbox auto-allow: run `/sandbox`
+7. Rename the session to the branch name: run `/rename <branch>`
 
 #### Classify work
-9. Read the implementation plan (from `../../plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
-10. Classify which layers have meaningful work (refer to your project structure for paths):
+1. Read the implementation plan (from `plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
+2. Classify which layers have meaningful work (refer to your project structure for paths):
     - **DB**: Schema changes, migration files, database functions
     - **Backend**: API endpoints, business logic, backend tests
     - **Frontend**: Components, hooks, UI, frontend tests
-11. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-12. Choose execution mode:
+3. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
+4. Choose execution mode:
     - **2+ independent layers with clear contracts** -> Step 2a (parallel)
     - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-13. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-14. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 11.
+5. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
+6. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 3.
 
 ### Step 2a: Parallel Implementation (large features)
 Create a team named `implement` and spawn teammates in a **single message**:
@@ -83,7 +79,7 @@ For each implementation plan phase, follow **define -> test -> implement** order
 
 ### Step 3: Verify Completeness
 After all implementation (parallel or sequential):
-1. Re-read `../../plans/<feature>/implementation-plan.md`
+1. Re-read `plans/<feature>/implementation-plan.md`
 2. Walk through every phase, task, and requirement in the plan
 3. For each item, classify as:
    - **Implemented** — code exists and tests pass
@@ -100,7 +96,7 @@ After all implementation (parallel or sequential):
    - Clean up migration scripts if used
    - Update docs if needed
 2. Run `/prep-merge-pr` to verify the branch is ready for PR
-3. Archive the plan: `mv ../../plans/<feature>/ ../../tmp/<feature>/`
+3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
 
 ## Approach
 - In parallel mode, agents must stay within their layer's file scope

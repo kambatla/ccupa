@@ -17,11 +17,14 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
 
 ## Steps
 
-1. **Identify the project root** — the current working directory (must not be the ccupa plugin repo itself).
+1. **Verify context** — if the current working directory is the ccupa plugin repo itself (i.e., `${CLAUDE_PLUGIN_ROOT}` equals the working directory), stop:
+   > `/sync-rules` must be run from a consuming project, not from inside the ccupa plugin repo.
 
-2. **Ensure `.claude/rules/` exists** in the project root. Create it if missing.
+2. **Identify the project root** — the current working directory.
 
-3. **Copy all rule files** from `${CLAUDE_PLUGIN_ROOT}/rules/` to the project's `.claude/rules/`, prefixing each filename with `ccupa-`:
+3. **Ensure `.claude/rules/` exists** in the project root. Create it if missing.
+
+4. **Copy all rule files** from `${CLAUDE_PLUGIN_ROOT}/rules/` to the project's `.claude/rules/`, prefixing each filename with `ccupa-`:
 
    - Glob `${CLAUDE_PLUGIN_ROOT}/rules/*.md` to discover all rule files
    - For each file, copy to `.claude/rules/ccupa-<original-filename>`
@@ -29,9 +32,9 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
 
    This is self-maintaining — new rule files added to `rules/` are automatically picked up.
 
-4. **Report results** — list each file copied and whether it was created or updated (file already existed).
+5. **Report results** — list each file copied and whether it was created or updated (file already existed).
 
-5. **Check for overlapping project rules** — scan non-`ccupa-` rule files in `.claude/rules/` for content that overlaps with the synced rules. Look for keywords and patterns covered by each rule:
+6. **Check for overlapping project rules** — scan non-`ccupa-` rule files in `.claude/rules/` for content that overlaps with the synced rules. Look for keywords and patterns covered by each rule:
 
    | Rule | Search for |
    |------|-----------|
@@ -49,7 +52,7 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
 
    **Do not edit or delete project rules** — only report findings so the user can decide.
 
-6. **Check for overlapping guidance in CLAUDE.md** — scan the project's `CLAUDE.md` (and any `**/CLAUDE.md` files) for overlaps using the same keyword table from step 5. For each match found, report:
+7. **Check for overlapping guidance in CLAUDE.md** — scan the project's `CLAUDE.md` (and any `**/CLAUDE.md` files) for overlaps using the same keyword table from step 5. For each match found, report:
    - The file and approximate line range
    - Which synced rule now covers it
    - A recommendation to remove or trim the section
@@ -58,6 +61,5 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
 
 ## Guard Rails
 
-- **Abort if running inside the ccupa plugin repo itself** — sync is only meaningful for consuming projects.
 - **Never delete** existing rules in `.claude/rules/` that don't have the `ccupa-` prefix — those belong to the project.
 - **Overwrite** existing `ccupa-*` files — that's the point of syncing.
