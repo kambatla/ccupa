@@ -1,5 +1,5 @@
 ---
-description: Directs all git operations (commits, branches, PRs, merges) to use the ccupa git-conventions skill.
+description: Directs all git operations (commits, branches, PRs, merges) to use the ccupa git-conventions skill. Applies to all files (intentionally unscoped).
 ---
 
 # Git Operations

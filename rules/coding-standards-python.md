@@ -10,13 +10,8 @@ Project-specific patterns for the Python backend. General Python/FastAPI best pr
 
 ## API Endpoints
 - Auth via `Annotated[dict, Depends(get_current_user)]`; check permissions inline before business logic
-- Database access via RPC wrappers — never raw SQL in endpoint code
 - Re-raise `HTTPException` without wrapping; map domain exceptions to `HTTPException` at the API layer
 - Pydantic models for request/response validation
-
-## Database Access
-
-Always use RPC wrappers — never raw SQL in endpoint code. See the db-conventions and db-conventions-supabase rules for implementation details.
 
 ## Testing (pytest)
 
@@ -31,4 +26,6 @@ Always use RPC wrappers — never raw SQL in endpoint code. See the db-conventio
 
 - **black** for formatting
 - **ruff** for linting
-- **mypy** in strict mode for type checking — projects should enable `strict = true` in `mypy.ini` or `pyproject.toml`
+- **mypy** in strict mode (`strict = true` in `pyproject.toml`)
+
+All errors from these tools must be resolved before committing. Fix the root cause — never suppress or widen types (e.g., `int | str`) to silence errors.

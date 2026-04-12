@@ -42,8 +42,9 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
    | coding-standards | fix all failures, test contract, contract verification |
    | coding-standards-python | `get_current_user`, RPC wrapper, pytest, black, ruff, mypy |
    | coding-standards-react-ts | design tokens, semantic Tailwind, Context+Hook, Vitest, RTL, `userEvent` |
-   | db-conventions | migration-first, never raw SQL, `db reset`, multi-tenancy, organization scoping |
+   | db-conventions | migration-first, `db reset`, multi-tenancy, organization scoping |
    | db-conventions-supabase | `_rpc` suffix, `p_*` prefix, `result_*` prefix, supabase migration |
+   | db-app-layer | raw SQL, RPC wrapper, ORM, database access |
 
    For each match found, report:
    - The project rule file and approximate line range

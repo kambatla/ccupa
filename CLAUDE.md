@@ -17,9 +17,11 @@ rules/                         # Convention rules — synced to consuming projec
   coding-standards.md          # Always active — general principles (fix all failures, tests as contracts)
   coding-standards-python.md   # Glob: **/*.py
   coding-standards-react-ts.md # Glob: **/*.{ts,tsx,js,jsx}
-  db-conventions.md            # Always active — critical rules, migration workflow, schema design
+  db-conventions.md            # Glob: **/*.sql, **/supabase/** — critical rules, migration naming, schema design
   db-conventions-supabase.md   # Glob: **/supabase/**, **/*.sql
+  db-app-layer.md              # Glob: **/*.py — no raw SQL in application code
 skills/                        # Skills — reference docs and workflow commands
+  db-conventions/              # SKILL.md (single file, no sub-routes)
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
   git-conventions/             # SKILL.md (single file, no sub-routes)
   permissions/                 # SKILL.md routes to preflight.md and review.md
@@ -53,7 +55,7 @@ scripts/                       # Shared shell scripts invoked by workflow skills
 
 **Rules** (synced to consuming projects): Convention rules in `rules/` define coding standards, database conventions, and git operation guidance. Rules can't be served directly from a plugin — `/sync-rules` copies them to the consuming project's `.claude/rules/` directory. Path-scoped rules load only when working with matching files.
 
-**Reference skills** (auto-invoked by context): deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
+**Reference skills** (auto-invoked by context): db-conventions, deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
 
 **Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Scripts in `scripts/` handle deterministic shell sequences; judgment and orchestration stay in the skill instructions.
 
@@ -84,9 +86,9 @@ The workflow skills form a feature development pipeline:
 These are the standards this plugin enforces in consuming projects. Coding standards and database conventions are delivered as **rules** (synced via `/sync-rules`). Git conventions and permissions are delivered as **skills**.
 
 - **Git** (skill): `<type>: <description>` commit format, HEREDOC for multi-line messages, no AI attribution, branch naming `<type>-<2-3-word-desc>`
-- **Python/FastAPI** (rule, `**/*.py`): Auth via `Depends(get_current_user)`, database via RPC wrappers (never raw SQL), Pydantic models, pytest with real DB + transaction rollback
+- **Python/FastAPI** (rule, `**/*.py`): Auth via `Depends(get_current_user)`, Pydantic models, pytest with real DB + transaction rollback
 - **React/TypeScript** (rule, `**/*.{ts,tsx,js,jsx}`): `React.FC<Props>`, Context+Hook state pattern, semantic Tailwind tokens (no hardcoded colors), shared UI components, Vitest + RTL with `userEvent`
-- **Database** (rule): Migration-first workflow (never `db reset`), RPC functions with `_rpc` suffix, `p_*` params, `result_*` returns, organization scoping for multi-tenancy
+- **Database** (rule + skill): Critical rules and schema design in rules (`db-conventions`, `db-conventions-supabase`, `db-app-layer`); detailed workflow examples in `db-conventions` skill. Migration-first, organization scoping, RPC functions with `_rpc` suffix / `p_*` params / `result_*` returns
 - **Testing** (rule): 80%+ coverage target, define→test→implement order, mock external services only (real DB for integration tests), RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - **Permissions** (skill): Preflight checks before spawning agents, post-session review of runtime-approved patterns, `/setup` for initial configuration
 

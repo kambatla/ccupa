@@ -1,5 +1,5 @@
 ---
-description: General coding principles — fix all failures regardless of origin, treat tests as contract verification.
+description: General coding principles — fix all failures regardless of origin, treat tests as contract verification. Applies to all files (intentionally unscoped).
 ---
 
 # Coding Standards

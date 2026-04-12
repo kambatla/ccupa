@@ -231,34 +231,7 @@ $$ LANGUAGE plpgsql;
 - Avoid N+1 queries — use JOINs or batch queries instead of looping with individual calls
 - Use bulk operations (e.g., `UNNEST`) for batch inserts instead of individual inserts in a loop
 
-## Changing a Function's Return Type
-
-```sql
--- Drop old signature (must include argument types)
-DROP FUNCTION IF EXISTS get_item_rpc(integer, integer);
-
--- Recreate with new return columns
-CREATE OR REPLACE FUNCTION get_item_rpc(p_item_id INTEGER, p_organization_id INTEGER)
-RETURNS TABLE (
-    result_id INTEGER,
-    result_name VARCHAR,
-    result_new_field TEXT  -- newly added
-) LANGUAGE plpgsql AS $$
-BEGIN
-    RETURN QUERY
-    SELECT id, name, new_field
-    FROM items
-    WHERE id = p_item_id AND organization_id = p_organization_id;
-END;
-$$;
-```
-
-**Key points:**
-- `DROP FUNCTION IF EXISTS` makes the migration re-runnable
-- Always specify argument types in the DROP to match the overload
-- `CREATE OR REPLACE` alone works fine when only the function *body* changes (same return type)
-
-## Common Gotchas
+## Supabase-Specific Gotchas
 
 ### 1. Always Prefix Return Fields
 ```sql
@@ -278,14 +251,7 @@ WHERE id = p_item_id AND organization_id = p_organization_id
 WHERE id = p_item_id
 ```
 
-### 3. Use RETURN QUERY for TABLE Returns
-```sql
--- GOOD
-RETURN QUERY SELECT id, name FROM items;
-
--- BAD
-RETURN (SELECT id, name FROM items);
-```
+See the `db-conventions` rule for general PostgreSQL gotchas (return type changes, `RETURN QUERY`, CASCADE constraints).
 
 ## Quick Reference
 
