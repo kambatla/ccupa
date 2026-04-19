@@ -8,7 +8,7 @@ disable-model-invocation: true
 Rebase on main, verify, merge, and clean up.
 
 ## Input
-"$ARGUMENTS" - Optional. Pass `--skip-prep` to bypass the `/prep-merge-pr` prerequisite check.
+"$ARGUMENTS" - Optional. Pass `--skip-prep` to bypass the `/review-pr` prerequisite check.
 
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
@@ -20,8 +20,8 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 ## Process
 
 ### Step 0: Prerequisites
-1. If `--skip-prep` is NOT in `$ARGUMENTS`: confirm `/prep-merge-pr` was run in this conversation. If not, stop:
-   > Run `/prep-merge-pr` first, or pass `--skip-prep` to merge without it.
+1. If `--skip-prep` is NOT in `$ARGUMENTS`: confirm `/review-pr` was run in this conversation. If not, stop:
+   > Run `/review-pr` first, or pass `--skip-prep` to merge without it.
 2. Get the current directory: `git rev-parse --show-toplevel` → save as `CURRENT_PATH`
 3. Get the main worktree path: `git worktree list --porcelain` — read the first `worktree` line → save as `MAIN_PATH`
 4. If `CURRENT_PATH` differs from `MAIN_PATH`, stop:

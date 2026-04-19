@@ -95,10 +95,10 @@ After all implementation (parallel or sequential):
    - Ensure schema files reflect any database changes
    - Clean up migration scripts if used
    - Update docs if needed
-2. Run `/prep-merge-pr` to verify the branch is ready for PR
+2. Run `/prep-pr` to verify the branch is ready for PR
 3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
 
 ## Approach
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
-- **Why teams here?** Unlike prep-commit/prep-merge-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape
+- **Why teams here?** Unlike prep-commit/prep-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape

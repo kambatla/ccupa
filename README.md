@@ -18,16 +18,17 @@ For features and bug fixes alike, define desired outcomes clearly so Claude can 
 
 Use agents to (a) reduce context usage of the main session and (b) limit confirmation bias.
 
-**Clean-slate reviews.** Code reviews in `/prep-commit` and `/prep-merge-pr` run in separate agent sessions with no exposure to the implementation reasoning. The reviewer sees `git diff`, not the conversation that produced it.
+**Clean-slate reviews.** Code reviews in `/prep-commit` and `/review-pr` run in separate agent sessions with no exposure to the implementation reasoning. The reviewer sees `git diff`, not the conversation that produced it.
 
-**Three-reviewer pattern** (`/prep-merge-pr`): correctness, quality, and security — each reviewer goes deep on one concern instead of shallow on all three. They run in parallel (wall-clock time equals one review), produce independent perspectives, and findings are deduplicated before a single fixer agent addresses them in one pass.
+**Three-reviewer pattern** (`/review-pr`): correctness, quality, and security — each reviewer goes deep on one concern instead of shallow on all three. They run in parallel (wall-clock time equals one review), produce independent perspectives, and findings are deduplicated before a single fixer agent addresses them in one pass.
 
 ### Parallelize where possible
 
 Reduce wall-clock time by running independent workstreams simultaneously.
 
 - `/prep-commit` spawns up to **6 parallel agents**: backend tests, frontend tests, backend quality, frontend quality, code reviewer, and Codex reviewer
-- `/prep-merge-pr` spawns up to **8 parallel agents**: 2 test runners + 2 quality checkers + 3 specialized reviewers + Codex reviewer
+- `/prep-pr` spawns up to **5 parallel agents**: 2 test runners + 1 integration tests + 2 quality checkers
+- `/review-pr` spawns up to **8 parallel agents**: 3 test runners + 2 quality checkers + 3 specialized reviewers (including Codex)
 - `/implement` spawns up to **3 parallel agents** (DB, backend, frontend) for features with independent layers
 
 Conditional skipping avoids wasted work: quality agents are skipped if `/prep-commit` already ran them with no code changes since; the security reviewer only spawns when changes touch auth, API, DB, or user input handling; test/quality agents are skipped entirely for unchanged sides.
@@ -42,25 +43,40 @@ Solid arrows are auto-invoked by the source command; dashed arrows require expli
 
 ```mermaid
 flowchart LR
- subgraph PMP_FLOW["Prep-Merge → PR / Merge"]
+ subgraph PPR_FLOW["Prep-PR → PR"]
     direction LR
-    PMP["/prep-merge-pr (Opus):<br/>Full verification<br/>before merge"]
-    subgraph PMP_A["↳ spawns in parallel"]
+    PPR["/prep-pr:<br/>Tests + quality<br/>before PR"]
+    subgraph PPR_A["↳ spawns in parallel"]
         direction TB
-        pmpT["tests (Haiku):<br/>Full suites +<br/>integration"]
-        pmpQ["quality (Haiku):<br/>Lint + auto-fix"]
-        pmpR["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
+        pprT["tests (Haiku):<br/>Full suites +<br/>integration"]
+        pprQ["quality (Haiku):<br/>Lint + auto-fix"]
     end
-    PMP_CHECK{issues?}
-    PMPFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
+    PPR_CHECK{issues?}
+    PPRFIX["fixer (Sonnet):<br/>Fix failures<br/>(tests → quality)"]
     PR["/pr (Haiku):<br/>Push branch +<br/>create PR"]
+    PPR --> PPR_A
+    PPR_A --> PPR_CHECK
+    PPR_CHECK -->|yes| PPRFIX
+    PPRFIX --> PPR_A
+    PPR_CHECK -.->|no| PR
+  end
+ subgraph RPR_FLOW["Review-PR → Merge"]
+    direction LR
+    RPR["/review-pr (Opus):<br/>Reviews + verification<br/>before merge"]
+    subgraph RPR_A["↳ spawns in parallel"]
+        direction TB
+        rprT["tests (Haiku):<br/>Full suites +<br/>integration"]
+        rprQ["quality (Haiku):<br/>Lint + auto-fix"]
+        rprR["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
+    end
+    RPR_CHECK{issues?}
+    RPRFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
     MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up"]
-    PMP --> PMP_A
-    PMP_A --> PMP_CHECK
-    PMP_CHECK -->|yes| PMPFIX
-    PMPFIX --> PMP_A
-    PMP_CHECK -.->|no| PR
-    PMP_CHECK -.->|no| MRG
+    RPR --> RPR_A
+    RPR_A --> RPR_CHECK
+    RPR_CHECK -->|yes| RPRFIX
+    RPRFIX --> RPR_A
+    RPR_CHECK -.->|no| MRG
   end
  subgraph PC_FLOW["Prep-Commit → Commit"]
     direction LR
@@ -111,15 +127,19 @@ flowchart LR
      pcT:::haiku
      pcQ:::haiku
      pcR:::opus
-     pmpT:::haiku
-     pmpQ:::haiku
-     pmpR:::opus
+     pprT:::haiku
+     pprQ:::haiku
+     rprT:::haiku
+     rprQ:::haiku
+     rprR:::opus
      PC:::skill-opus
      PCFIX:::sonnet
      CMT:::skill-sonnet
-     PMP:::skill-opus
-     PMPFIX:::sonnet
+     PPR:::skill-sonnet
+     PPRFIX:::sonnet
      PR:::skill-haiku
+     RPR:::skill-opus
+     RPRFIX:::sonnet
      MRG:::skill-haiku
     classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
     classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
@@ -141,9 +161,10 @@ flowchart LR
 | `/bug` | Investigate, write regression test, fix, prove fix works |
 | `/prep-commit` | Parallel agents: scoped tests, quality checks, code review |
 | `/commit` | Stage and commit per git conventions |
-| `/prep-merge-pr` | Full test suites + 3 specialized reviews (correctness, quality, security) |
+| `/prep-pr` | Full test suites + quality checks (gates `/pr`) |
 | `/pr` | Push branch, create PR via `gh` with structured body |
-| `/merge` | Rebase on main, run `/prep-merge-pr`, merge, clean up |
+| `/review-pr` | Code reviews + tests/quality baseline + fix loop; post PR comment (gates `/merge`) |
+| `/merge` | Rebase on main, merge, clean up |
 | `/sync-main` | Pull latest main, delete merged local branches |
 | `/push` | Push main to all configured remotes |
 | `/learn` | Session reflection: review permissions, corrections, patterns; propose improvements |

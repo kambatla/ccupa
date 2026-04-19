@@ -1,6 +1,6 @@
 ---
 name: review-tracking
-description: Defines how review agents emit findings, how the fixer attributes actions, and how per-reviewer ROI is recorded to the global ledger. Use when running prep-commit or prep-merge-pr reviewer agents.
+description: Defines how review agents emit findings, how the fixer attributes actions, and how per-reviewer ROI is recorded to the global ledger. Use when running prep-commit or review-pr reviewer agents.
 ---
 
 # Review Tracking Skill
@@ -39,7 +39,7 @@ Every finding ID passed to the fixer must appear in its attribution report.
 
 ## Deduplication and Unique Find Tracking
 
-During the deduplication step in prep-commit/prep-merge-pr Step 3:
+During the deduplication step in prep-commit/review-pr Step 3:
 
 1. Assign each raw finding a global ID: `{agent-name}:{N}` (e.g., `reviewer:1`, `codex-review:2`)
 2. Group findings that refer to the same issue (same file+line, or clearly the same bug described differently)

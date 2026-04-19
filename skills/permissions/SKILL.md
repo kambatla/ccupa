@@ -10,7 +10,7 @@ This skill manages tool permissions so agents can run without blocking on approv
 ## When to Use This Skill
 
 Claude should invoke this skill when:
-- About to spawn agents in non-interactive commands (`/implement`, `/bug`, `/prep-commit`, `/prep-merge-pr`)
+- About to spawn agents in non-interactive commands (`/implement`, `/bug`, `/prep-commit`, `/prep-pr`, `/review-pr`)
 - Running `/learn` to reflect on a session (review runtime approvals)
 - Onboarding a project via `/setup`
 

@@ -37,7 +37,8 @@ skills/                        # Skills — reference docs and workflow commands
   merge/                       # Workflow skill (disable-model-invocation: true)
   pr/                          # Workflow skill (disable-model-invocation: true)
   prep-commit/                 # Workflow skill (disable-model-invocation: true)
-  prep-merge-pr/               # Workflow skill (disable-model-invocation: true)
+  prep-pr/                     # Workflow skill (disable-model-invocation: true)
+  review-pr/                   # Workflow skill (disable-model-invocation: true)
   push/                        # Workflow skill (disable-model-invocation: true)
   ralph/                       # Workflow skill: loop.md, cancel.md, help.md
   setup/                       # Workflow skill (disable-model-invocation: true)
@@ -70,12 +71,13 @@ The workflow skills form a feature development pipeline:
 4. `/bug` — Investigate, write regression test (must fail first), fix, prove fix works
 5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review + Codex review; fix issues
 6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC (requires `/prep-commit`)
-7. `/prep-merge-pr` — Full test suites, quality checks, 2 specialized reviews (unified correctness+quality, security) + Codex review; fix issues
-8. `/pr` — Push branch, create PR via `gh` with structured body (requires `/prep-merge-pr`)
-9. `/merge` — Rebase on main, merge, delete branch (requires `/prep-merge-pr`)
-10. `/sync-main` — Pull latest main, delete merged local branches
-11. `/push` — Push main to all configured remotes
-12. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
+7. `/prep-pr` — Full test suites, quality checks; fix issues (gates `/pr`)
+8. `/pr` — Push branch, create PR via `gh` with structured body (requires `/prep-pr`)
+9. `/review-pr` — Code reviews + tests/quality baseline + fix loop; post results as PR comment (gates `/merge`)
+10. `/merge` — Rebase on main, merge, delete branch (requires `/review-pr`)
+11. `/sync-main` — Pull latest main, delete merged local branches
+12. `/push` — Push main to all configured remotes
+13. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
 
 **Worktree utilities** (optional, used when parallel isolation is needed):
 - `/create-worktree` — Attach a worktree to an existing branch
@@ -100,9 +102,9 @@ Workflow skills follow two patterns based on whether they spawn sub-agents:
 `/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
-`/prep-commit`, `/prep-merge-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
+`/prep-commit`, `/prep-pr`, `/review-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
 
-**Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` and `/merge` require `/prep-merge-pr`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
+**Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` requires `/prep-pr`; `/merge` requires `/review-pr`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
 
 ## Sub-Agent Model Selection
 
@@ -110,8 +112,8 @@ When orchestrator workflows spawn sub-agents, match the model to the task:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | Claude code reviews (`reviewer` in prep-commit and prep-merge-pr) |
-| **Sonnet** | Implementation teammates (`db`, `backend`, `frontend`), `review-resolver` fixer agents, `review-security` in prep-merge-pr |
+| **Opus** | Claude code reviews (`reviewer` in prep-commit and review-pr) |
+| **Sonnet** | Implementation teammates (`db`, `backend`, `frontend`), `review-resolver` fixer agents, `review-security` in review-pr |
 | **Haiku** | Test runners, quality/formatting checks, `codex-review` agent wrappers |
 | **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
 
@@ -128,6 +130,6 @@ When modifying this plugin:
 - **Reference skills** are reference docs — keep them scannable with tables, code blocks, and clear rules
 - **Workflow skills** define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
 - Each SKILL.md is an entrypoint — reference skill SKILL.mds should describe when to use the skill and link to sub-files; workflow skill SKILL.mds contain the full workflow
-- Workflow skills have prerequisite chains (e.g., `/commit` requires `/prep-commit`, `/pr` and `/merge` require `/prep-merge-pr`) — maintain these dependencies when renaming or restructuring
+- Workflow skills have prerequisite chains (e.g., `/commit` requires `/prep-commit`, `/pr` requires `/prep-pr`, `/merge` requires `/review-pr`) — maintain these dependencies when renaming or restructuring
 - Leaf workflows specify `## Execution: Run as a Haiku sub-agent` — preserve this when adding new leaf workflows. Orchestrator workflows run in the current session with sub-agent model choices per the Sub-Agent Model Selection table.
 - Scripts in `scripts/` handle deterministic shell sequences — keep them focused and single-purpose; invoke via `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`

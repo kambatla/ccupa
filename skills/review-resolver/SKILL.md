@@ -1,6 +1,6 @@
 ---
 name: review-resolver
-description: Defines how to spawn and brief the fixer agent that resolves deduplicated review findings. Use in the fix-verify loop of prep-commit or prep-merge-pr.
+description: Defines how to spawn and brief the fixer agent that resolves deduplicated review findings. Use in the fix-verify loop of prep-commit or review-pr.
 ---
 
 # Review Resolver Skill

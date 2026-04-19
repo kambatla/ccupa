@@ -20,8 +20,8 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 ## Process
 
-0. **Prerequisites:** confirm `/prep-merge-pr` was run in this conversation. If not, stop:
-   > Run `/prep-merge-pr` first, then re-run `/pr`.
+0. **Prerequisites:** confirm `/prep-pr` was run in this conversation. If not, stop:
+   > Run `/prep-pr` first, then re-run `/pr`.
 
 1. **Review branch:**
    - Run `git log main..HEAD --oneline` to see all commits

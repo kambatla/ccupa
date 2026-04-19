@@ -39,7 +39,7 @@ For each finding, confirm it is present in the diff and not already handled else
 </verification_loop>
 ```
 
-### Branch Changes Review (prep-merge-pr)
+### Branch Changes Review (review-pr)
 
 ```
 <task>

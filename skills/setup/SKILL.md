@@ -24,7 +24,7 @@ Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 1. Check if `CLAUDE.md` already has a "Tool Permissions" section
 2. If not, draft an addition instructing Claude to run permission preflight before non-interactive autonomous work:
    - Reference `skills/permissions/preflight.md`
-   - List the non-interactive commands that spawn agents: `/implement`, `/bug`, `/prep-commit`, `/prep-merge-pr`
+   - List the non-interactive commands that spawn agents: `/implement`, `/bug`, `/prep-commit`, `/prep-pr`, `/review-pr`
 3. Present the addition to the user
 4. Write only after user confirms
 
