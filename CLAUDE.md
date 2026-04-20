@@ -26,6 +26,7 @@ skills/                        # Skills — reference docs and workflow commands
   git-conventions/             # SKILL.md (single file, no sub-routes)
   permissions/                 # SKILL.md routes to preflight.md and review.md
   codex-review/                # SKILL.md (single file, no sub-routes)
+    run-codex-review.sh        # Invoke codex review with branch+timestamp output path
   review-tracking/             # SKILL.md (single file, no sub-routes)
   review-resolver/             # SKILL.md (single file, no sub-routes)
   brainstorm/                  # Workflow skill (disable-model-invocation: true)
@@ -38,27 +39,26 @@ skills/                        # Skills — reference docs and workflow commands
   pr/                          # Workflow skill (disable-model-invocation: true)
   prep-commit/                 # Workflow skill (disable-model-invocation: true)
   prep-pr/                     # Workflow skill (disable-model-invocation: true)
+  review-branch/               # Workflow skill (disable-model-invocation: true)
   review-pr/                   # Workflow skill (disable-model-invocation: true)
   push/                        # Workflow skill (disable-model-invocation: true)
+    push-all-remotes.sh        # Push main to all configured remotes
   ralph/                       # Workflow skill: loop.md, cancel.md, help.md
+    setup-ralph-loop.sh        # Initialize Ralph loop state file
   setup/                       # Workflow skill (disable-model-invocation: true)
   sync-main/                   # Workflow skill (disable-model-invocation: true)
   sync-rules/                  # Workflow skill (disable-model-invocation: true)
   create-worktree/             # Workflow skill (disable-model-invocation: true)
+    setup-worktree.sh          # Create worktree, check gitignore, symlink config files
   delete-worktree/             # Workflow skill (disable-model-invocation: true)
-scripts/                       # Shared shell scripts invoked by workflow skills
-  setup-worktree.sh            # Create worktree, check gitignore, symlink config files
-  teardown-worktree.sh         # Remove worktree, preserving branch (commits WIP if dirty)
-  push-all-remotes.sh          # Push main to all configured remotes
-  setup-ralph-loop.sh          # Initialize Ralph loop state file
-  run-codex-review.sh          # Invoke codex review with branch+timestamp output path
+    teardown-worktree.sh       # Remove worktree, preserving branch (commits WIP if dirty)
 ```
 
 **Rules** (synced to consuming projects): Convention rules in `rules/` define coding standards, database conventions, and git operation guidance. Rules can't be served directly from a plugin — `/sync-rules` copies them to the consuming project's `.claude/rules/` directory. Path-scoped rules load only when working with matching files.
 
 **Reference skills** (auto-invoked by context): db-conventions, deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
 
-**Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Scripts in `scripts/` handle deterministic shell sequences; judgment and orchestration stay in the skill instructions.
+**Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Shell scripts co-located in each skill's directory handle deterministic sequences; judgment and orchestration stay in the skill instructions.
 
 ## Workflow Lifecycle
 
@@ -73,11 +73,13 @@ The workflow skills form a feature development pipeline:
 6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC (requires `/prep-commit`)
 7. `/prep-pr` — Full test suites, quality checks; fix issues (gates `/pr`)
 8. `/pr` — Push branch, create PR via `gh` with structured body (requires `/prep-pr`)
-9. `/review-pr` — Code reviews + tests/quality baseline + fix loop; post results as PR comment (gates `/merge`)
-10. `/merge` — Rebase on main, merge, delete branch (requires `/review-pr`)
+9. `/review-pr` — Delegates to `/review-branch`, then posts results as PR comment (gates `/merge`)
+10. `/merge` — Rebase on main, merge, delete branch (requires `/review-pr` or `/review-branch`)
 11. `/sync-main` — Pull latest main, delete merged local branches
 12. `/push` — Push main to all configured remotes
 13. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
+
+**Alternate path (no PR):** `/review-branch` — same review+fix workflow as `/review-pr` but no PR required; reports to conversation only. Supersedes `/prep-pr` and `/review-pr` when used. Satisfies the `/merge` prerequisite.
 
 **Worktree utilities** (optional, used when parallel isolation is needed):
 - `/create-worktree` — Attach a worktree to an existing branch
@@ -102,9 +104,9 @@ Workflow skills follow two patterns based on whether they spawn sub-agents:
 `/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
-`/prep-commit`, `/prep-pr`, `/review-pr`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
+`/prep-commit`, `/prep-pr`, `/review-pr`, `/review-branch`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
 
-**Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` requires `/prep-pr`; `/merge` requires `/review-pr`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
+**Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` requires `/prep-pr`; `/merge` requires `/review-pr` or `/review-branch`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
 
 ## Sub-Agent Model Selection
 
@@ -130,6 +132,6 @@ When modifying this plugin:
 - **Reference skills** are reference docs — keep them scannable with tables, code blocks, and clear rules
 - **Workflow skills** define multi-step processes — they specify sequential steps, agent coordination, and skip conditions
 - Each SKILL.md is an entrypoint — reference skill SKILL.mds should describe when to use the skill and link to sub-files; workflow skill SKILL.mds contain the full workflow
-- Workflow skills have prerequisite chains (e.g., `/commit` requires `/prep-commit`, `/pr` requires `/prep-pr`, `/merge` requires `/review-pr`) — maintain these dependencies when renaming or restructuring
+- Workflow skills have prerequisite chains (e.g., `/commit` requires `/prep-commit`, `/pr` requires `/prep-pr`, `/merge` requires `/review-pr` or `/review-branch`) — maintain these dependencies when renaming or restructuring
 - Leaf workflows specify `## Execution: Run as a Haiku sub-agent` — preserve this when adding new leaf workflows. Orchestrator workflows run in the current session with sub-agent model choices per the Sub-Agent Model Selection table.
-- Scripts in `scripts/` handle deterministic shell sequences — keep them focused and single-purpose; invoke via `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`
+- Shell scripts live in the owning skill's directory — keep them focused and single-purpose; invoke via `${CLAUDE_PLUGIN_ROOT}/skills/<skill-name>/<script>.sh`

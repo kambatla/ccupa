@@ -21,7 +21,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 Run the push script — set `dangerouslyDisableSandbox: true` (SSH is blocked by sandbox):
 ```
-"${CLAUDE_PLUGIN_ROOT}/scripts/push-all-remotes.sh"
+"${CLAUDE_PLUGIN_ROOT}/skills/push/push-all-remotes.sh"
 ```
 
 The script verifies you are on main, lists all configured remotes, and pushes to each.

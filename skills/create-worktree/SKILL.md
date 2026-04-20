@@ -16,7 +16,7 @@ Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
 - `Bash(git *)`
-- `Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-worktree.sh *)`
+- `Bash(${CLAUDE_PLUGIN_ROOT}/skills/create-worktree/setup-worktree.sh *)`
 
 ## Process
 
@@ -27,7 +27,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
    > Branch `<branch>` is already checked out in a worktree.
 4. Run the worktree setup script:
    ```
-   "${CLAUDE_PLUGIN_ROOT}/scripts/setup-worktree.sh" <branch> --existing
+   "${CLAUDE_PLUGIN_ROOT}/skills/create-worktree/setup-worktree.sh" <branch> --existing
    ```
    If the script exits non-zero, stop and report the error.
 5. Configure sandbox auto-allow for this worktree: run `/sandbox`

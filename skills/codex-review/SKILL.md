@@ -14,7 +14,7 @@ Check `which codex` before invoking. If not installed, skip the Codex review and
 ## Standard Invocation
 
 ```
-"${CLAUDE_PLUGIN_ROOT}/scripts/run-codex-review.sh" "<prompt>"
+"${CLAUDE_PLUGIN_ROOT}/skills/codex-review/run-codex-review.sh" "<prompt>"
 ```
 
 The script handles branch name, timestamp, and output path automatically. It writes the result to `$TMPDIR/codex-review-<branch>-<timestamp>.md` and cats it to stdout.

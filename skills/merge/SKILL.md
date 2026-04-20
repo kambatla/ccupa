@@ -20,8 +20,8 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 ## Process
 
 ### Step 0: Prerequisites
-1. If `--skip-prep` is NOT in `$ARGUMENTS`: confirm `/review-pr` was run in this conversation. If not, stop:
-   > Run `/review-pr` first, or pass `--skip-prep` to merge without it.
+1. If `--skip-prep` is NOT in `$ARGUMENTS`: confirm `/review-pr` or `/review-branch` was run in this conversation. If not, stop:
+   > Run `/review-pr` (or `/review-branch`) first, or pass `--skip-prep` to merge without it.
 2. Get the current directory: `git rev-parse --show-toplevel` → save as `CURRENT_PATH`
 3. Get the main worktree path: `git worktree list --porcelain` — read the first `worktree` line → save as `MAIN_PATH`
 4. If `CURRENT_PATH` differs from `MAIN_PATH`, stop:

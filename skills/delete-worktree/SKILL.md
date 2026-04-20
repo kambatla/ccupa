@@ -13,7 +13,7 @@ Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 ## Required Permissions
 For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to configure.
 - `Bash(git *)`
-- `Bash(${CLAUDE_PLUGIN_ROOT}/scripts/teardown-worktree.sh *)`
+- `Bash(${CLAUDE_PLUGIN_ROOT}/skills/delete-worktree/teardown-worktree.sh *)`
 
 ## Process
 
@@ -25,7 +25,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 5. Check for untracked files that will not be saved: `git -C "$WORKTREE_PATH" ls-files --others --exclude-standard` → save as `UNTRACKED`
 6. Run the teardown script (commits any uncommitted tracked changes as WIP, then removes the worktree):
    ```
-   "${CLAUDE_PLUGIN_ROOT}/scripts/teardown-worktree.sh" "$WORKTREE_PATH"
+   "${CLAUDE_PLUGIN_ROOT}/skills/delete-worktree/teardown-worktree.sh" "$WORKTREE_PATH"
    ```
 7. Report:
    > Worktree removed. Branch `<BRANCH>` is intact — `cd` to the main checkout and run `git checkout <BRANCH>` to continue.
