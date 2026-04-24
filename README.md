@@ -164,9 +164,7 @@ flowchart LR
 | `/prep-pr` | Full test suites + quality checks (gates `/pr`) |
 | `/pr` | Push branch, create PR via `gh` with structured body |
 | `/review-pr` | Code reviews + tests/quality baseline + fix loop; post PR comment (gates `/merge`) |
-| `/merge` | Rebase on main, merge, clean up |
-| `/sync-main` | Pull latest main, delete merged local branches |
-| `/push` | Push main to all configured remotes |
+| `/merge` | Rebase on main, merge, push to all remotes, clean up merged branches |
 | `/learn` | Session reflection: review permissions, corrections, patterns; propose improvements |
 
 ## Convention skills

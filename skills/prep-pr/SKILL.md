@@ -31,7 +31,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 |-------|-------|------|------------|
 | `backend-tests` | Haiku | Run this exact command from the project root: `{exact test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No backend changes |
 | `frontend-tests` | Haiku | Run this exact command from the project root: `{exact test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No frontend changes |
-| `integration-tests` | Haiku | Run this exact command: `{exact integration test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No integration test command defined in project |
+| `integration-tests` | Haiku | Run this exact command: `{exact integration test command}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — integration tests connect to a real database which is blocked by the sandbox. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No integration test command defined in project |
 
 #### Quality (conditional — may be skippable)
 

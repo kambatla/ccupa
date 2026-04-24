@@ -24,12 +24,11 @@ If `--current-branch` is in `$ARGUMENTS`:
 
 Otherwise:
 1. Verify the current branch is `main`; if not, prompt the user to switch before continuing.
-2. Ensure main branch is synced (run `/sync-main` first if needed)
-3. Choose a branch name (max 3 hyphenated words)
-4. Check for collisions: `git branch --list <branch>`. If already taken, generate a different name and repeat until a free name is found — do not ask the user or reuse the existing branch unless explicitly instructed to.
-5. Create and switch to the branch: `git checkout -b <branch>`
-6. Configure sandbox auto-allow: run `/sandbox`
-7. Rename the session to the branch name: run `/rename <branch>`
+2. Choose a branch name (max 3 hyphenated words)
+3. Check for collisions: `git branch --list <branch>`. If already taken, generate a different name and repeat until a free name is found — do not ask the user or reuse the existing branch unless explicitly instructed to.
+4. Create and switch to the branch: `git checkout -b <branch>`
+5. Configure sandbox auto-allow: run `/sandbox`
+6. Rename the session to the branch name: run `/rename <branch>`
 
 #### Classify work
 1. Read the implementation plan (from `plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`

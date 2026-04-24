@@ -14,7 +14,7 @@ Run specialized code reviews, full test suites, and quality checks in parallel u
 
 ### Step 0: Prerequisites
 1. Check for uncommitted changes via `git status`
-2. If there are staged or unstaged changes, stop and instruct the user to commit them first. All changes must be committed before this workflow runs — the fix loop uses `git add -u` and pushes commits, which would capture stray changes.
+2. If there are staged or unstaged changes, stop and instruct the user to commit them first. All changes must be committed before this workflow runs — the fix loop uses `git add -u` and commits, which would capture stray changes.
 
 ### Step 1: Setup
 1. Read the branch diff: `git log main..HEAD` and `git diff main...HEAD`
@@ -32,7 +32,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 |-------|-------|------|------------|
 | `backend-tests` | Haiku | Run this exact command from the project root: `{exact test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No backend changes |
 | `frontend-tests` | Haiku | Run this exact command from the project root: `{exact test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No frontend changes |
-| `integration-tests` | Haiku | Run this exact command: `{exact integration test command}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No integration test command defined in project |
+| `integration-tests` | Haiku | Run this exact command: `{exact integration test command}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — integration tests connect to a real database which is blocked by the sandbox. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No integration test command defined in project |
 | `backend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (formatter output, `--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No backend changes |
 | `frontend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (`--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No frontend changes |
 
@@ -42,7 +42,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 |-------|-------|------|---------------|
 | `reviewer` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for two categories — label every finding with its category: **[CORRECTNESS]** logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, changes that don't align with stated intent; **[QUALITY]** poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns, commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
 | `review-security` | Sonnet | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. Note: Sonnet handles common vulnerability patterns well; escalate to a human if findings involve subtle auth logic or business rule bypasses. | Changes touch auth, API, DB, or user input handling |
-| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. After it completes, you must output results — do not go idle. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code or explore the codebase. | Codex CLI installed (checked in Setup) |
+| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — codex uses macOS system APIs blocked by the sandbox. After it completes, you must output results — do not go idle. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code or explore the codebase. | Codex CLI installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **branch changes review** command. Pass the complete command to the agent so it can execute directly.
 
@@ -64,7 +64,6 @@ Fix in three sequential phases (max 3 iterations each). No triage gate — fix e
 
 **After each fixer run** — capture touched files: `git diff --name-only` (modified tracked files) + `git ls-files --others --exclude-standard` (new files), classified by layer using Step 1 logic. Re-stage: `git add -u` + any new files the fixer created (only in directories it was working in). Exit the phase immediately if the fixer made no changes — it determined the remaining issues don't warrant fixes.
 
-**Push behavior:** After committing each phase, push if the branch has a configured upstream (`git rev-parse --abbrev-ref @{u}` returns a value — set `dangerouslyDisableSandbox: true` on the push, SSH is blocked by sandbox). If no upstream is configured, skip push and note that the fix commit is local only.
 
 **Phase A — Correctness** (test failures + [CORRECTNESS]-labeled findings from `reviewer` + codex-review findings):
 - Skip if tests passed, reviewer had no [CORRECTNESS] findings, and codex-review had no findings
@@ -123,7 +122,7 @@ Then report to the conversation:
 - **Unified code reviewer**: single Opus agent labels findings as [CORRECTNESS] or [QUALITY], replacing two separate reviewers; security stays separate at Sonnet
 - **Conditional agents**: security review only for security-sensitive changes; Codex only if installed
 - **No triage gate**: fix everything — this runs asynchronously, so no user is waiting to approve findings
-- **Commit-per-phase**: each fix phase commits separately for traceability; push if upstream is configured
+- **Commit-per-phase**: each fix phase commits separately for traceability
 - **Deduplicated findings**: merge overlapping issues before passing to the fixer
 - **Sequential fix phases**: Correctness first, then Security, then Quality — higher-priority fixes are settled before lower-priority ones run
 - **Scoped re-runs**: after each fixer run, re-run only checks for that phase and only for layers the fixer touched (`git diff --name-only`); re-run reviewers only if fixer ACTED on their findings; Quality phase never re-runs tests

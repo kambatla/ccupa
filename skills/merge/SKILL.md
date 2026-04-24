@@ -41,3 +41,19 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
    - **Single commit:** `git merge --ff` (fast-forward, keeps history linear)
    - **Multiple commits:** `git merge --no-ff` (merge commit, preserves branch context)
 4. Delete the feature branch: `git branch -d <BRANCH>`
+
+### Step 3: Push to All Remotes
+1. List configured remotes: `git remote`
+2. If no remotes are configured, note this and skip to Step 4
+3. For each remote, push main — set `dangerouslyDisableSandbox: true` on each push (SSH is blocked by sandbox)
+
+### Step 4: Clean Up Other Merged Branches
+1. Identify local branches fully merged into main (excluding main/master): `git branch --merged main`
+2. Run `git worktree prune` to clean up stale worktree references
+3. Parse `git worktree list --porcelain` to find worktrees whose `branch` field matches any merged branch — only exact matches, skip worktrees that don't match
+4. If merged branches exist: present the list and any associated worktrees to the user for confirmation (single confirmation for both). **Warn explicitly that `--force` removal will permanently discard uncommitted changes in those worktrees.**
+5. Remove worktrees for merged branches: `git worktree remove --force <path>` for each
+6. Delete the merged branches
+7. Report summary: worktrees removed, branches deleted, main is up to date on all remotes
+
+Skip Step 4 entirely if no other merged branches are found.

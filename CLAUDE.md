@@ -41,12 +41,9 @@ skills/                        # Skills — reference docs and workflow commands
   prep-pr/                     # Workflow skill (disable-model-invocation: true)
   review-branch/               # Workflow skill (disable-model-invocation: true)
   review-pr/                   # Workflow skill (disable-model-invocation: true)
-  push/                        # Workflow skill (disable-model-invocation: true)
-    push-all-remotes.sh        # Push main to all configured remotes
   ralph/                       # Workflow skill: loop.md, cancel.md, help.md
     setup-ralph-loop.sh        # Initialize Ralph loop state file
   setup/                       # Workflow skill (disable-model-invocation: true)
-  sync-main/                   # Workflow skill (disable-model-invocation: true)
   sync-rules/                  # Workflow skill (disable-model-invocation: true)
   create-worktree/             # Workflow skill (disable-model-invocation: true)
     setup-worktree.sh          # Create worktree, check gitignore, symlink config files
@@ -74,10 +71,8 @@ The workflow skills form a feature development pipeline:
 7. `/prep-pr` — Full test suites, quality checks; fix issues (gates `/pr`)
 8. `/pr` — Push branch, create PR via `gh` with structured body (requires `/prep-pr`)
 9. `/review-pr` — Delegates to `/review-branch`, then posts results as PR comment (gates `/merge`)
-10. `/merge` — Rebase on main, merge, delete branch (requires `/review-pr` or `/review-branch`)
-11. `/sync-main` — Pull latest main, delete merged local branches
-12. `/push` — Push main to all configured remotes
-13. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
+10. `/merge` — Rebase on main, merge, push to all remotes, clean up merged branches (requires `/review-pr` or `/review-branch`)
+11. `/learn` — Session reflection: review permissions, corrections, and patterns; propose improvements
 
 **Alternate path (no PR):** `/review-branch` — same review+fix workflow as `/review-pr` but no PR required; reports to conversation only. Supersedes `/prep-pr` and `/review-pr` when used. Satisfies the `/merge` prerequisite.
 
@@ -101,7 +96,7 @@ These are the standards this plugin enforces in consuming projects. Coding stand
 Workflow skills follow two patterns based on whether they spawn sub-agents:
 
 **Leaf workflows** (no sub-agents) run as a **Haiku sub-agent** to save cost and avoid context pollution in the main session:
-`/commit`, `/pr`, `/push`, `/sync-main`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
+`/commit`, `/pr`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
 `/prep-commit`, `/prep-pr`, `/review-pr`, `/review-branch`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
