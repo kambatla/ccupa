@@ -10,6 +10,22 @@ Run tests, code quality checks, and a code review in parallel using agents, then
 ## Input
 "$ARGUMENTS" - Optional context about what was changed in the branch. Include `--bugfix` to trigger bug fix verification (stash/test fail/unstash/test pass).
 
+## Finding Format
+
+Reviewer agents must number and structure their findings:
+
+```
+[1] high | security — User input passed directly to query without validation (api/search.py:23)
+[2] medium | logic — Pagination skips last item when count equals page size (api/items.py:87)
+[3] low | quality — Variable name `x` is not descriptive (utils.py:12)
+```
+
+Format: `[N] severity | category — description (file:line)`
+
+- **severity**: `high`, `medium`, or `low`
+- **category**: `security`, `logic`, `quality`, `coverage`, or `style`
+- If no findings: output `[none]`
+
 ## Process
 
 ### Step 1: Setup
@@ -48,8 +64,8 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 | `frontend-tests` | Haiku | Run this exact command from the project root: `{exact test command for changed files}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No frontend changes |
 | `backend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (formatter output, `--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No backend changes |
 | `frontend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (`--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No frontend changes |
-| `reviewer` | Opus | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Never skip |
-| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — codex uses macOS system APIs blocked by the sandbox. After it completes, you must output results — do not go idle. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code or explore the codebase. | Codex CLI not installed (checked in Setup) |
+| `reviewer` | Opus | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Format findings per the **Finding Format** section above. Do NOT fix code. | Never skip |
+| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — codex uses macOS system APIs blocked by the sandbox. After it completes, you must output results — do not go idle. Report the output formatted as findings per the **Finding Format** section above. Do NOT fix code or explore the codebase. | Codex CLI not installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **staged changes review** command. Pass the complete command to the agent so it can execute directly.
 
@@ -61,7 +77,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Re-stage changes: `git add -u` (captures quality auto-fixes without pulling in unrelated untracked files)
 2. Collect results from every agent
-3. Deduplicate findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which to re-run in the loop).
+3. Deduplicate findings — assign each raw finding a global ID `{agent-name}:{N}` (e.g., `reviewer:1`, `codex-review:2`), group findings that refer to the same issue (same file+line, or clearly the same bug described differently). **Track which reviewers had findings separately** (needed to decide which to re-run in the loop).
 4. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
 
 Fix in two sequential phases (max 3 iterations each).

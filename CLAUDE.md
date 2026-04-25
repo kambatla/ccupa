@@ -27,7 +27,6 @@ skills/                        # Skills — reference docs and workflow commands
   permissions/                 # SKILL.md routes to preflight.md and review.md
   codex-review/                # SKILL.md (single file, no sub-routes)
     run-codex-review.sh        # Invoke codex review with branch+timestamp output path
-  review-tracking/             # SKILL.md (single file, no sub-routes)
   review-resolver/             # SKILL.md (single file, no sub-routes)
   brainstorm/                  # Workflow skill (disable-model-invocation: true)
   bug/                         # Workflow skill (disable-model-invocation: true)
@@ -53,7 +52,7 @@ skills/                        # Skills — reference docs and workflow commands
 
 **Rules** (synced to consuming projects): Convention rules in `rules/` define coding standards, database conventions, and git operation guidance. Rules can't be served directly from a plugin — `/sync-rules` copies them to the consuming project's `.claude/rules/` directory. Path-scoped rules load only when working with matching files.
 
-**Reference skills** (auto-invoked by context): db-conventions, deployment, git-conventions, permissions, codex-review, review-tracking, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
+**Reference skills** (auto-invoked by context): db-conventions, deployment, git-conventions, permissions, codex-review, review-resolver. Each has a `SKILL.md` router that points to language- or platform-specific files.
 
 **Workflow skills** (explicit invocation only, `disable-model-invocation: true`): all others. These define multi-step processes with agent coordination and skip conditions. Shell scripts co-located in each skill's directory handle deterministic sequences; judgment and orchestration stay in the skill instructions.
 

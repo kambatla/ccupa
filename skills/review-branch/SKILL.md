@@ -10,6 +10,22 @@ Run specialized code reviews, full test suites, and quality checks in parallel u
 ## Input
 "$ARGUMENTS" - Not used.
 
+## Finding Format
+
+Reviewer agents must number and structure their findings:
+
+```
+[1] high | security — User input passed directly to query without validation (api/search.py:23)
+[2] medium | logic — Pagination skips last item when count equals page size (api/items.py:87)
+[3] low | quality — Variable name `x` is not descriptive (utils.py:12)
+```
+
+Format: `[N] severity | category — description (file:line)`
+
+- **severity**: `high`, `medium`, or `low`
+- **category**: `security`, `logic`, `quality`, `coverage`, or `style`
+- If no findings: output `[none]`
+
 ## Process
 
 ### Step 0: Prerequisites
@@ -40,9 +56,9 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 
 | Agent | Model | Task | When to spawn |
 |-------|-------|------|---------------|
-| `reviewer` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for two categories — label every finding with its category: **[CORRECTNESS]** logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, changes that don't align with stated intent; **[QUALITY]** poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns, commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. | Always |
-| `review-security` | Sonnet | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per `ccupa:review-tracking` skill. Do NOT fix code. Note: Sonnet handles common vulnerability patterns well; escalate to a human if findings involve subtle auth logic or business rule bypasses. | Changes touch auth, API, DB, or user input handling |
-| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — codex uses macOS system APIs blocked by the sandbox. After it completes, you must output results — do not go idle. Report the output formatted as findings per `ccupa:review-tracking` skill. Do NOT fix code or explore the codebase. | Codex CLI installed (checked in Setup) |
+| `reviewer` | Opus | First read `git log main..HEAD` to understand the branch intent from commit messages. Then review `git diff main...HEAD` for two categories — label every finding with its category: **[CORRECTNESS]** logic bugs, wrong conditions, off-by-one errors, unhandled edge cases, missing error handling, incorrect data flow, changes that don't align with stated intent; **[QUALITY]** poor naming, unnecessary complexity, duplication, dead code, missing test coverage for new logic, violation of existing patterns, commits that bundle unrelated concerns. Be specific — reference exact lines. Format findings per the **Finding Format** section above. Do NOT fix code. | Always |
+| `review-security` | Sonnet | First read `git log main..HEAD` to understand the branch intent. Then review `git diff main...HEAD` for **security**: auth/authz bypasses, injection vulnerabilities (SQL, XSS, command), data exposure, insecure defaults, missing input validation at system boundaries. Be specific — reference exact lines. Format findings per the **Finding Format** section above. Do NOT fix code. Note: Sonnet handles common vulnerability patterns well; escalate to a human if findings involve subtle auth logic or business rule bypasses. | Changes touch auth, API, DB, or user input handling |
+| `codex-review` | Haiku | Run this exact command: `{full codex exec command from ccupa:codex-review skill}`. **Set `dangerouslyDisableSandbox: true` on the Bash call** — codex uses macOS system APIs blocked by the sandbox. After it completes, you must output results — do not go idle. Report the output formatted as findings per the **Finding Format** section above. Do NOT fix code or explore the codebase. | Codex CLI installed (checked in Setup) |
 
 **codex-review agent setup:** Before spawning, use the `ccupa:codex-review` skill (loaded in your context) to construct the full **branch changes review** command. Pass the complete command to the agent so it can execute directly.
 
@@ -56,7 +72,7 @@ Spawn agents via the Task tool in a **single message** so they run simultaneousl
 After **all** agents complete:
 1. Stage quality auto-fixes if any: `git add -u`
 2. Collect results from every agent (tests, quality, and all review reports)
-3. Deduplicate review findings per `ccupa:review-tracking` skill — assign global IDs, group overlapping findings, identify unique finds per reviewer. **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop).
+3. Deduplicate review findings — assign each raw finding a global ID `{agent-name}:{N}` (e.g., `reviewer:1`, `codex-review:2`), group findings that refer to the same issue (same file+line, or clearly the same bug described differently). **Track which reviewers had findings separately** (needed to decide which reviewers to re-run in the loop).
 4. If all checks passed and reviews found nothing -> skip to **Step 4: Report**
 5. If tests or quality failed in Step 2, include those failures as Phase A / Phase C findings respectively.
 
