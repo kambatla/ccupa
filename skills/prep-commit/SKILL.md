@@ -56,7 +56,7 @@ Prove the fix actually fixes something by showing the test fails without it and 
 **Why before parallel checks?** Stashing changes would break concurrent agents reading/writing files. This must complete before spawning any agents.
 
 ### Step 2: Parallel Checks (spawn all at once)
-Spawn agents via the Task tool in a **single message** so they run simultaneously:
+Spawn fresh agents via the Task tool in a **single message** so they run simultaneously:
 
 | Agent | Model | Task | Skip if... |
 |-------|-------|------|------------|

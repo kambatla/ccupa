@@ -44,7 +44,7 @@ Otherwise:
 6. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 3.
 
 ### Step 2a: Parallel Implementation (large features)
-Create a team named `implement` and spawn teammates in a **single message**:
+Create a team named `implement` and spawn fresh teammates in a **single message**:
 
 | Teammate | Model | Scope | Instructions |
 |----------|-------|-------|-------------|
@@ -61,7 +61,7 @@ Skip agents for layers with no work. Each agent follows a **define -> test -> im
 
 After all agents complete:
 1. **Cross-layer consistency check** — verify function names, field names, and types are consistent across all layers and their tests
-2. If issues found, spawn a single Sonnet `fixer` teammate with all findings to resolve in one pass
+2. If issues found, spawn a fresh, single Sonnet `fixer` teammate with all findings to resolve in one pass
 3. Run `/prep-commit` to verify all checks pass
 4. Commit with format: `<type>: <short-description>`
 5. Shut down team
@@ -100,4 +100,5 @@ After all implementation (parallel or sequential):
 ## Approach
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
+- When the lead agent (not teammates) faces a non-trivial implementation decision with 2+ viable approaches before or during sequential Step 2b, create a forked, background sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. In parallel Step 2a, teammates must not fork independently — if a teammate hits a multi-approach decision, it should surface the conflict to the lead agent and pause.
 - **Why teams here?** Unlike prep-commit/prep-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape

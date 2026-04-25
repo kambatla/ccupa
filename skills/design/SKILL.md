@@ -35,9 +35,10 @@ For each layer:
 1. **Explore the existing codebase** — read relevant files, schemas, patterns, and conventions already in use
 2. **Augment-first check** — before proposing anything new, explicitly ask: can this be accomplished by extending an existing service, endpoint, UI element, or other abstraction? State your answer before presenting alternatives. Only introduce new abstractions when existing ones genuinely cannot be extended without degrading them.
 3. Ask clarifying questions about needs (simplicity, maintainability, performance, extensibility)
-4. Identify canonical approaches and present alternatives with pros/cons
-5. Recommend best option and confirm choice before moving to the next layer
-6. **Define test cases** — before moving on, outline what should be tested for this layer:
+4. Identify canonical approaches and alternatives
+5. When choosing between 2+ non-trivial approaches, create a forked, foreground sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. If only one viable approach exists, state it directly.
+6. Present the chosen approach (fork verdict or direct recommendation) to the user and confirm before moving to the next layer
+7. **Define test cases** — before moving on, outline what should be tested for this layer:
    - What behaviors and outcomes should the tests verify?
    - What edge cases and error conditions matter?
    - What should NOT be tested (implementation details, framework internals)?

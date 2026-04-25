@@ -9,7 +9,7 @@ The review resolver is a **Sonnet** agent that receives combined, deduplicated f
 
 ## Spawning the Resolver
 
-Spawn a single **Sonnet** `fixer` agent with:
+Spawn a fresh, single **Sonnet** `fixer` agent with:
 - The **combined, deduplicated** findings from the most recent check run — test failures, quality errors, and review issues — each identified by global ID (`agent-name:N`)
 - This instruction: **Fix all issues. For each finding, report disposition in the attribution format below (ACTED or DISMISSED with reason). If an issue is a false positive or intentional design choice, do not change code for it — explain why in your response.**
 
