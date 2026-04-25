@@ -40,7 +40,7 @@ Format: `[N] severity | category — description (file:line)`
 5. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 3.
 
 ### Step 2: Parallel Checks (spawn all at once)
-Spawn agents via the Task tool in a **single message** so they run simultaneously:
+Spawn fresh agents via the Task tool in a **single message** so they run simultaneously:
 
 #### Tests + Quality
 
