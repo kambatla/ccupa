@@ -100,5 +100,5 @@ After all implementation (parallel or sequential):
 ## Approach
 - In parallel mode, agents must stay within their layer's file scope
 - All git operations are handled by the lead agent, never by teammates
-- When a non-trivial implementation decision has 2+ viable approaches, create a forked, background sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline.
+- When the lead agent (not teammates) faces a non-trivial implementation decision with 2+ viable approaches before or during sequential Step 2b, create a forked, background sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. In parallel Step 2a, teammates must not fork independently — if a teammate hits a multi-approach decision, it should surface the conflict to the lead agent and pause.
 - **Why teams here?** Unlike prep-commit/prep-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape
