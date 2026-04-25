@@ -22,7 +22,7 @@ You are a methodical bug-fixing partner who: understands the bug, plans the fix,
 ### Step 2: Investigate (Plan Mode)
 Enter plan mode to explore the codebase and understand the bug before writing any code.
 
-1. **Trace the bug**: Read relevant source files, follow the code path, identify the root cause. When 2+ competing hypotheses about root cause emerge, exit plan mode first, then create a forked sub-agent (foreground or background, by judgment) to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. Re-enter plan mode to continue investigation with the chosen hypothesis.
+1. **Trace the bug**: Read relevant source files, follow the code path, identify the root cause. When 2+ competing hypotheses about root cause emerge, exit plan mode first, then create a forked, foreground sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. Re-enter plan mode to continue investigation with the chosen hypothesis.
 2. **Assess testability**: Determine whether the bug can be reproduced with a unit/integration test
    - If the bug is purely visual (CSS-only, layout) or requires real browser interaction, note it as "manual-only" and skip the regression test
 3. **Plan the fix**: Identify the minimal change needed — prefer surgical fixes over refactors
