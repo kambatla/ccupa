@@ -1,31 +1,25 @@
 ---
 name: codex-review
-description: Codex CLI invocation patterns for code and design reviews. Defines standard flags, prompt templates, and skip conditions. Use when spawning codex-review agents.
+description: Codex CLI invocation patterns for code and design reviews. Defines standard flags, prompt templates, and skip conditions. Use when spawning ext-review agents.
 ---
 
-# Codex Review Skill
+# Codex Review
 
-Centralizes how we invoke the Codex CLI for reviews. Commands reference this skill instead of hardcoding the invocation.
+Check `which codex` before invoking. Skip and log if not installed. Prefer `ccupa:gemini-review` when both are available.
 
-## Prerequisites
-
-Check `which codex` before invoking. If not installed, skip the Codex review and log why.
-
-## Standard Invocation
+## Invocation
 
 ```
 "${CLAUDE_PLUGIN_ROOT}/skills/codex-review/run-codex-review.sh" "<prompt>"
 ```
 
-The script handles branch name, timestamp, and output path automatically. It writes the result to `$TMPDIR/codex-review-<branch>-<timestamp>.md` and cats it to stdout.
-
-**Sandbox:** set `dangerouslyDisableSandbox: true` on this Bash call — codex uses macOS system APIs (`SCDynamicStore`) that are blocked by Claude Code's sandbox.
-
-No `-m` flag — defaults to `gpt-codex-5`.
+- Script handles branch name, timestamp, output path automatically; cats result to stdout
+- **Set `dangerouslyDisableSandbox: true`** on this Bash call — codex uses `SCDynamicStore` (blocked by sandbox)
+- No `-m` flag — defaults to `gpt-codex-5`
 
 ## Prompt Templates
 
-### Staged Changes Review (prep-commit)
+### Staged Changes (prep-commit)
 
 ```
 <task>
@@ -39,7 +33,7 @@ For each finding, confirm it is present in the diff and not already handled else
 </verification_loop>
 ```
 
-### Branch Changes Review (review-pr)
+### Branch Changes (review-pr)
 
 ```
 <task>
@@ -69,7 +63,7 @@ For each finding, confirm it reflects a real gap in the plan and is not already 
 
 ### Design Review — Adversarial (design)
 
-Use when challenging architectural decisions and surfacing unstated assumptions — not for bug-hunting. Run after the standard design review, or instead of it when the design warrants deeper scrutiny.
+Use to challenge architectural decisions, not for bug-hunting.
 
 ```
 <task>
@@ -82,9 +76,3 @@ For each challenge: state the assumption or decision being questioned, explain t
 For each challenge, confirm it targets a real decision in the plan — not a strawman — and that the alternative perspective is actionable.
 </verification_loop>
 ```
-
-## Agent Pattern
-
-The `codex-review` agent is a **Haiku** wrapper — it runs the Codex CLI command and reports the output. It does NOT fix code.
-
-After presenting findings, STOP. Do not apply fixes or suggest edits — the orchestrator decides what to do next.

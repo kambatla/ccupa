@@ -25,7 +25,9 @@ skills/                        # Skills — reference docs and workflow commands
   deployment/                  # SKILL.md routes to local.md or digital-ocean.md
   git-conventions/             # SKILL.md (single file, no sub-routes)
   permissions/                 # SKILL.md routes to preflight.md and review.md
-  codex-review/                # SKILL.md (single file, no sub-routes)
+  gemini-review/               # SKILL.md (single file, no sub-routes) — preferred external reviewer
+    run-gemini-review.sh       # Invoke gemini review with branch+timestamp output path
+  codex-review/                # SKILL.md (single file, no sub-routes) — fallback external reviewer
     run-codex-review.sh        # Invoke codex review with branch+timestamp output path
   review-resolver/             # SKILL.md (single file, no sub-routes)
   brainstorm/                  # Workflow skill (disable-model-invocation: true)
@@ -62,8 +64,8 @@ The workflow skills form a feature development pipeline:
 
 0. `/setup` — Onboard a consuming project: configure permissions, bootstrap settings, sync rules
 1. `/brainstorm` — Explore problem space, challenge assumptions, recommend direction
-2. `/design` — Architect layer-by-layer (storage → backend → frontend), define test cases during design, Codex design review
-3. `/implement` — Execute the plan (sequential or parallel with agent teams), follows define→test→implement order
+2. `/design` — Clarify scope, explore per-layer via sub-agents, make cascading architecture decisions, decompose into tasks with behavioral contracts, write plan
+3. `/implement` — Execute plan as dependency-ordered task batches (parallel Sonnet agents per task), commit per task, consistency check
 4. `/bug` — Investigate, write regression test (must fail first), fix, prove fix works
 5. `/prep-commit` — Parallel agents: run scoped tests, quality checks, code review + Codex review; fix issues
 6. `/commit` — Stage, draft message per git-conventions, commit with HEREDOC (requires `/prep-commit`)
@@ -108,10 +110,9 @@ When orchestrator workflows spawn sub-agents, match the model to the task:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | Claude code reviews (`reviewer` in prep-commit and review-pr) |
-| **Sonnet** | Implementation teammates (`db`, `backend`, `frontend`), `review-resolver` fixer agents, `review-security` in review-pr |
-| **Haiku** | Test runners, quality/formatting checks, `codex-review` agent wrappers |
-| **Codex (gpt-codex-5)** | Review model invoked inside `codex-review` agents — see codex-review skill for invocation flags and prompt templates |
+| **Opus** | `reviewer` in review-branch and review-pr (full branch diff, security + correctness + quality in one pass) |
+| **Sonnet** | Task agents in `/implement`, architect sub-agents in `/design`, `review-resolver` fixer agents, `reviewer` in prep-commit (small staged diff) |
+| **Haiku** | Test runners, quality/formatting checks |
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy review. Sonnet for implementation that requires understanding. Haiku for mechanical tasks with clear instructions.
 

@@ -11,3 +11,6 @@ Thumbs.db
 
 # Temporary files
 tmp/
+
+# Implementation plans (local working files, not tracked)
+plans/

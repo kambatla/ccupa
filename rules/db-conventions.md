@@ -30,8 +30,6 @@ Generic database conventions for migration-first development. If you are writing
 - Use `NOT NULL`, `REFERENCES` (with `ON DELETE CASCADE`), `UNIQUE`, and `CHECK` constraints
 - Every tenant-specific table must include `organization_id` scoping
 
-## Common Gotchas
+## Gotchas
 
-1. **CASCADE on FK constraints** — use `ON DELETE CASCADE` or deletes will fail when related records exist
-2. **Altering return types** — PostgreSQL requires `DROP FUNCTION` before recreating with a new return type; `CREATE OR REPLACE` alone fails
-3. **RETURN QUERY** — use `RETURN QUERY SELECT ...` for TABLE returns, not `RETURN (SELECT ...)`
+- `RETURN QUERY` — use `RETURN QUERY SELECT ...` for TABLE returns, not `RETURN (SELECT ...)`

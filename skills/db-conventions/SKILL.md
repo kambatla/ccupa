@@ -3,45 +3,22 @@ name: db-conventions
 description: Database conventions reference — migration-first workflow with examples, multi-tenancy patterns, function templates, testing strategy. Use when writing migrations, database functions, or working with schema changes.
 ---
 
-# Database Conventions Skill
-
-Detailed reference for database development patterns. The `db-conventions` rule provides critical rules and quick reminders; this skill provides the full walkthrough with examples.
-
-## When to Use This Skill
-
-Claude should invoke this skill when:
-- Writing a new migration file
-- Creating or modifying database functions
-- Setting up database tests with transaction rollback
-- User asks "how should I structure this migration?" or similar
-- Working with multi-tenancy patterns
+# Database Conventions
 
 ## Migration-First Workflow
 
-### Step 1: Create Migration File
+### 1. Create Migration File
 
-Use your platform's migration tool to create a timestamped file:
 ```bash
-# Example: Supabase
-supabase migration new "descriptive_name_of_change"
-
-# Example: Alembic
-alembic revision -m "descriptive_name_of_change"
-
-# Example: Django
-python manage.py makemigrations
+supabase migration new "descriptive_name_of_change"  # Supabase
+alembic revision -m "descriptive_name_of_change"     # Alembic
+python manage.py makemigrations                       # Django
 ```
 
-**Naming conventions:**
-- `add_table_name` - New table creation
-- `add_column_to_table` - Adding columns
-- `create_function_name` - New database function
-- `update_function_name` - Modifying existing function
-- `add_index_on_table_column` - New indexes
+**Naming:** `add_table_name`, `add_column_to_table`, `create_function_name`, `update_function_name`, `add_index_on_table_column`
 
-### Step 2: Write the Migration
+### 2. Write the Migration
 
-**Schema changes:**
 ```sql
 CREATE TABLE IF NOT EXISTS items (
     id SERIAL PRIMARY KEY,
@@ -56,35 +33,23 @@ CREATE TABLE IF NOT EXISTS items (
 CREATE INDEX idx_items_org ON items(organization_id);
 ```
 
-### Step 3: Apply Migration
+### 3. Apply Migration
 
 Apply individually — never batch-reset:
+
 ```bash
-# Direct psql
 psql "connection-string" -f migrations/TIMESTAMP_file.sql
-
-# Or via platform CLI
-supabase db push
-alembic upgrade head
-python manage.py migrate
+# or: supabase db push / alembic upgrade head / python manage.py migrate
 ```
 
-### Step 4: Test
+### 4. Commit
 
-Run tests for affected code to verify the migration works correctly.
-
-### Step 5: Commit
-
-Include migration filename in the commit for traceability:
-```
-feature: Add items table
-
-Migration file: migrations/20250115_add_items.sql
-```
+Include migration filename in the commit body for traceability.
 
 ## Multi-Tenancy Patterns
 
-**Organization scoping:** Every tenant-specific table includes `organization_id`:
+Every tenant-specific table includes `organization_id`:
+
 ```sql
 -- GOOD: Multi-tenant safe
 WHERE id = p_item_id AND organization_id = p_organization_id
@@ -93,22 +58,26 @@ WHERE id = p_item_id AND organization_id = p_organization_id
 WHERE id = p_item_id
 ```
 
-**Row-Level Security (RLS):** Consider RLS policies for defense-in-depth, especially when the database is accessed from multiple services.
+Consider RLS policies for defense-in-depth when the database is accessed from multiple services.
 
-## Function / Procedure Patterns
-
-### Input Validation
-- Validate parameters before executing queries
-- Return meaningful error messages
+## Function Patterns
 
 ### Return Types
-- Use scalar returns (INTEGER, BOOLEAN) for simple operations
-- Use TABLE returns for record queries
-- Use consistent naming for returned fields
+- Scalar (`INTEGER`, `BOOLEAN`) for simple operations
+- `TABLE` for record queries
+- `RETURN QUERY` syntax for TABLE returns:
+
+```sql
+-- GOOD
+RETURN QUERY SELECT id, name FROM items;
+
+-- BAD: won't work with TABLE return type
+RETURN (SELECT id, name FROM items);
+```
 
 ### Error Handling
+
 ```sql
--- Validate before operating
 IF NOT EXISTS(SELECT 1 FROM items WHERE id = p_item_id) THEN
     RETURN QUERY SELECT FALSE, 'Item not found'::VARCHAR;
     RETURN;
@@ -116,8 +85,6 @@ END IF;
 ```
 
 ## Testing Strategy
-
-### Real Database with Transaction Rollback
 
 ```python
 @pytest.fixture
@@ -129,50 +96,38 @@ def db_connection():
     conn.close()
 ```
 
-**Rules:**
-- Use real database for integration tests (not mocks)
-- Always use transactions with rollback for isolation
-- Test organization scoping (multi-tenancy)
-- Test both success and failure cases
+- Real database for integration tests (not mocks)
+- Transactions with rollback for isolation
+- Test organization scoping and both success/failure cases
 
 ## Common Gotchas
 
-### 1. Always Use CASCADE for FK Constraints
+### Always use CASCADE for FK constraints
+
 ```sql
--- GOOD: Automatically delete related records
+-- GOOD
 organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE
 
--- BAD: Will fail if related records exist
+-- BAD: fails if related records exist
 organization_id INTEGER NOT NULL REFERENCES organizations(id)
 ```
 
-### 2. Altering Function Return Types (PostgreSQL)
+### Altering Function Return Types (PostgreSQL)
+
 ```sql
 -- GOOD: Drop first, then recreate
 DROP FUNCTION IF EXISTS get_item_rpc(integer);
-CREATE OR REPLACE FUNCTION get_item_rpc(p_id INTEGER)
-RETURNS TABLE (...) AS $$ ... $$;
+CREATE OR REPLACE FUNCTION get_item_rpc(p_id INTEGER) RETURNS TABLE (...) AS $$ ... $$;
 
--- BAD: Will fail with "cannot change return type"
-CREATE OR REPLACE FUNCTION get_item_rpc(p_id INTEGER)
-RETURNS TABLE (... new_column ...) AS $$ ... $$;
+-- BAD: fails with "cannot change return type"
+CREATE OR REPLACE FUNCTION get_item_rpc(p_id INTEGER) RETURNS TABLE (... new_column ...) AS $$ ... $$;
 ```
 
-### 3. Use RETURN QUERY for TABLE Returns
-```sql
--- GOOD
-RETURN QUERY SELECT id, name FROM items;
+## Migration Rollback
 
--- BAD: Won't work with TABLE return type
-RETURN (SELECT id, name FROM items);
-```
-
-## Migration Rollback Pattern
-
-If you need to undo a migration, create a new migration:
+Create a new migration — never destructively reset:
 
 ```sql
--- In a new migration file
 DROP FUNCTION IF EXISTS function_name(parameter_types);
 DROP TABLE IF EXISTS table_name CASCADE;
 DROP INDEX IF EXISTS idx_name;

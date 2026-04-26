@@ -5,8 +5,6 @@ disable-model-invocation: true
 
 # Create Pull Request
 
-Create a pull request with a comprehensive description following project conventions.
-
 ## Input
 "$ARGUMENTS" - Optional context about the PR.
 
@@ -24,19 +22,17 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
    > Run `/prep-pr` first, then re-run `/pr`.
 
 1. **Review branch:**
-   - Run `git log main..HEAD --oneline` to see all commits
-   - Run `git diff main...HEAD` to see full diff
-   - Identify changed files and their purpose
+   - `git log main..HEAD --oneline`
+   - `git diff main...HEAD`
 
 2. **Push if needed:**
    - Check if current branch tracks a remote
-   - Push with `-u` flag if not yet pushed — set `dangerouslyDisableSandbox: true` on this call (SSH is blocked by sandbox)
+   - Push with `-u` flag if not yet pushed — set `dangerouslyDisableSandbox: true` (SSH is blocked by sandbox)
 
 3. **Create PR:**
    - Title: `<type>: <description>` per git-conventions
    - Body: Summary bullets, Test plan checklist
-   - Use HEREDOC format for the body
-   - Do NOT include AI attribution
+   - Use HEREDOC format. Do NOT include AI attribution.
 
 ```bash
 gh pr create --title "<type>: <description>" --body "$(cat <<'EOF'
@@ -52,5 +48,4 @@ EOF
 )"
 ```
 
-4. **Report:**
-   - Return the PR URL
+4. Return the PR URL.

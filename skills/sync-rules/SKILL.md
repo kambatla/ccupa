@@ -11,10 +11,6 @@ Copies the latest ccupa convention rules from this plugin into the consuming pro
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 
-## Why This Exists
-
-Rules (unlike skills) cannot be served directly from a plugin — they must live in the project's `.claude/rules/` directory. This command bridges that gap by syncing the plugin's rule files into the project.
-
 ## Steps
 
 1. **Verify context** — if the current working directory is the ccupa plugin repo itself (i.e., `${CLAUDE_PLUGIN_ROOT}` equals the working directory), stop:
@@ -29,8 +25,6 @@ Rules (unlike skills) cannot be served directly from a plugin — they must live
    - Glob `${CLAUDE_PLUGIN_ROOT}/rules/*.md` to discover all rule files
    - For each file, copy to `.claude/rules/ccupa-<original-filename>`
    - Example: `rules/coding-standards-python.md` → `.claude/rules/ccupa-coding-standards-python.md`
-
-   This is self-maintaining — new rule files added to `rules/` are automatically picked up.
 
 5. **Report results** — list each file copied and whether it was created or updated (file already existed).
 

@@ -1,46 +1,36 @@
 # Permission Preflight
 
-Run this procedure before spawning agents in non-interactive commands. Goal: ensure `.claude/settings.local.json` has all patterns agents will need, so they don't block on approval prompts.
+Run before spawning agents. Goal: ensure `.claude/settings.local.json` has all patterns agents will need.
 
 ## Procedure
 
-### 1. Discover Required Patterns
+### 1. Compile Required Patterns
 
-Compile patterns from two sources:
-
-**Static patterns** (always needed when agents run):
+**Static** (always needed):
 - `Bash(git *)` — git operations
-- `Bash(codex exec *)` — Codex CLI (if installed)
+- `Bash(gemini -p *)` — if gemini installed
+- `Bash(codex exec *)` — if codex installed (fallback)
 
-**Dynamic patterns** (command-specific):
-- Exact test and quality commands discovered during Setup
-- Use project-specific prefixes, e.g., `Bash(pytest*)`, `Bash(npx vitest*)`
-- These are passed in by the calling command — do not guess
+**Dynamic** (passed in by the calling command — do not guess):
+- Exact test and quality commands, e.g. `Bash(pytest*)`, `Bash(npx vitest*)`
 
 ### 2. Check Settings
 
-1. Read `.claude/settings.local.json`
-2. Parse the `permissions.allow` array
-3. If the file doesn't exist, treat as empty allow list
+Read `.claude/settings.local.json`. If it doesn't exist, treat as empty allow list.
 
 ### 3. Identify Gaps
 
-Compare required patterns against allowed patterns. A required pattern is covered if:
-- An exact match exists in `permissions.allow`
-- A broader wildcard in `permissions.allow` subsumes it (e.g., `Bash(*)` covers `Bash(git *)`)
+A pattern is covered if an exact match or broader wildcard exists in `permissions.allow` (e.g. `Bash(*)` covers `Bash(git *)`).
 
 ### 4. Present and Configure
 
-**If no gaps:** proceed silently — no output needed.
+**No gaps:** proceed silently.
 
-**If gaps exist:**
-1. Show a table:
+**Gaps exist:**
 
 | Pattern | Needed by |
 |---------|-----------|
 | `Bash(pytest*)` | `backend-tests` agent |
 | `Bash(npx vitest*)` | `frontend-tests` agent |
 
-2. Offer to add missing patterns to `.claude/settings.local.json`
-3. If user approves, write the updated file
-4. If user declines, warn that agents may block on approval prompts and proceed
+Offer to add missing patterns. If approved, write the file. If declined, warn that agents may block on approval prompts.

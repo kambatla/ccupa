@@ -10,28 +10,27 @@ Project-specific patterns for the React frontend. General React/TypeScript best 
 
 ## UI Components
 
-- Use shared UI components (Button, Modal, Input, etc.) instead of raw HTML elements (`<button>`, `<input>`, `<select>`, `<textarea>`)
-- Lint rules should enforce this where possible
+Use shared UI components (Button, Modal, Input, etc.) instead of raw HTML elements (`<button>`, `<input>`, `<select>`, `<textarea>`). Enforce via lint rules where possible.
 
 ## Design Tokens
 
 Semantic Tailwind classes — no hardcoded colors:
 
 ```typescript
-// Correct — semantic tokens
+// Correct
 className="bg-action-primary text-text-inverse border-border-default"
 
-// Wrong — hardcoded colors
+// Wrong
 className="bg-blue-500 text-white border-gray-300"
 ```
 
-Use a utility like `cn()` or `clsx` for conditional classes.
+Use `cn()` or `clsx` for conditional classes.
 
 ## API Client
 
 - One service class per domain, methods return typed promises
 - API client handles auth tokens and 401 redirects automatically
-- Supabase returns `BIGINT` columns as `string` in JSON (to avoid JS precision loss) — type them as `string`, not `number`
+- Supabase returns `BIGINT` as `string` in JSON — type them as `string`, not `number`
 
 ## State Management
 
@@ -59,9 +58,7 @@ export const useFeature = () => {
 ## File Organization
 
 - Co-locate tests with source (`__tests__/` next to components)
-- Group components by feature/domain
-- Separate shared UI components from feature-specific ones
-- Dedicated directories for hooks, contexts, types, and utilities
+- Group components by feature/domain; dedicated directories for hooks, contexts, types, utilities
 
 ## Conventions
 
@@ -71,10 +68,9 @@ export const useFeature = () => {
 
 ## Testing (Vitest + RTL)
 
-- Always use `--run` flag with Vitest: `vitest --run` (prevents watch mode from blocking the process)
+- Always use `--run` flag: `vitest --run`
 - RTL query priority: ByRole > ByLabel > ByText > ByTestId
 - `userEvent` over `fireEvent`
-- Test files in `__tests__/` next to source
 - See coding-standards rule for handling test failures
 
 ## Tooling

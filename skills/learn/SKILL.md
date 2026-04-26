@@ -32,14 +32,11 @@ Group findings by target:
 Most proposals should target the project's `CLAUDE.md` or `.claude/settings.local.json` — these are project-specific and low-risk. Plugin-level changes (skills/) affect all projects using the plugin and should be rare.
 
 ### Step 3: Present Proposals
-For each proposal, show:
+For each proposal:
 - **What:** the specific change
-- **Why:** session evidence (what happened that motivates this)
-- **Impact:** what improves if adopted
+- **Why:** session evidence
 
-User approves or rejects each proposal individually.
-
-**Plugin-level proposals** require separate explicit confirmation with a warning: "This change affects all projects using the plugin."
+User approves or rejects each individually. **Plugin-level proposals** require explicit confirmation: "This change affects all projects using the plugin."
 
 ### Step 4: Apply Approved Changes
 For each approved change:
@@ -48,4 +45,4 @@ For each approved change:
 3. Write the updated file
 
 ### Step 5: Summary
-List what was changed and where.
+List files changed.

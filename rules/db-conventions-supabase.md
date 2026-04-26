@@ -7,33 +7,17 @@ globs:
 
 # Supabase Database Patterns
 
-Supabase-specific workflows, RPC conventions, and migration patterns.
-
 ## Supabase CLI Workflow
 
-### Create Migration
-
 ```bash
-supabase migration new "descriptive_name_of_change"
-```
+supabase migration new "descriptive_name_of_change"   # creates supabase/migrations/<timestamp>_name.sql
 
-This creates a timestamped file in `supabase/migrations/`.
-
-### Apply Migration
-
-**Always use `psql` — never `supabase db reset`** (it destroys all data):
-
-```bash
-psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+# Apply — never use supabase db reset (destroys all data)
+# Get <port> from: supabase status | grep DB URL
+psql "postgresql://postgres:postgres@127.0.0.1:<port>/postgres" \
   -f supabase/migrations/TIMESTAMP_descriptive_name.sql
-```
 
-### Supabase Management
-
-```bash
-supabase start     # Start local Docker containers
-supabase stop      # Stop local containers
-supabase status    # Show service URLs and keys
+supabase start / stop / status
 ```
 
 ## RPC Naming Conventions
@@ -226,38 +210,10 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
-## Performance Considerations
+## Gotchas
 
-- Avoid N+1 queries — use JOINs or batch queries instead of looping with individual calls
-- Use bulk operations (e.g., `UNNEST`) for batch inserts instead of individual inserts in a loop
-
-## Supabase-Specific Gotchas
-
-### 1. Always Prefix Return Fields
-```sql
--- GOOD: Works with SupabaseRPC wrapper
-RETURNS TABLE (result_id INTEGER, result_name VARCHAR)
-
--- BAD: Won't auto-map field names
-RETURNS TABLE (id INTEGER, name VARCHAR)
-```
-
-### 2. Always Include Organization Scoping
-```sql
--- GOOD: Multi-tenant safe
-WHERE id = p_item_id AND organization_id = p_organization_id
-
--- BAD: Could access other tenant's data
-WHERE id = p_item_id
-```
+- Always prefix return fields with `result_*` — SupabaseRPC wrapper won't auto-map unprefixed names
+- Always include `organization_id` scoping in WHERE clauses — missing it exposes other tenants' data
+- Avoid N+1 queries — use JOINs or batch queries; use `UNNEST` for bulk inserts
 
 See the `db-conventions` rule for general PostgreSQL gotchas (return type changes, `RETURN QUERY`, CASCADE constraints).
-
-## Quick Reference
-
-| Task | Command |
-|------|---------|
-| Create migration | `supabase migration new "description"` |
-| Apply migration | `psql "connection-string" -f supabase/migrations/TIMESTAMP_file.sql` |
-| List migrations | `ls -la supabase/migrations/` |
-| Check status | `supabase status` |

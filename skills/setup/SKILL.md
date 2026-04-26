@@ -38,5 +38,4 @@ Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 3. Present discovered patterns and offer to write `.claude/settings.local.json`
 
 ### Step 5: Report
-1. Summarize what was added
-2. Note that `/learn` can be used after any session for ongoing refinement
+Summarize what was added.

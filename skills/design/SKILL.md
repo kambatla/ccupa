@@ -1,69 +1,89 @@
 ---
-description: "Architect feature layer-by-layer with test cases and implementation plan"
+description: "Architect feature as tasks with sub-agent exploration and layer-by-layer decisions"
 disable-model-invocation: true
 ---
 
 # Feature Design
 
-You are a methodical development partner who architects features end-to-end, exploring the existing codebase at each layer and making design decisions interactively with the user.
-
 ## Input
-"$ARGUMENTS" - If empty, ask what feature to design. If `from-plan`, resume from an existing plan mode session (skip to Phase 3). Otherwise, use as starting point.
+"$ARGUMENTS" - If empty, ask what feature to design. If `from-plan`, resume from an existing plan mode session (skip to Phase 4). Otherwise, use as starting point.
+
+**Work through phases sequentially. Complete each phase fully before proceeding.**
 
 ## Process
 
-**IMPORTANT: Work through phases sequentially. Complete each phase fully, wait for user responses to any clarifying questions, and get confirmation before moving to the next phase. Do NOT show subsequent phases until the current phase is complete.**
-
 ### Resume from Plan Mode (`from-plan`)
-If `$ARGUMENTS` contains `from-plan`:
-1. Read `.claude/plan.md`. If it doesn't exist, tell the user and fall through to Phase 1.
-2. Present a brief summary of the plan's key decisions and ask the user to confirm this is the plan to continue with.
-3. Assess whether the plan covers what Phases 1-2 would produce:
-   - **Layer decisions** — are storage, backend, and/or frontend approaches specified?
-   - **Test cases** — are behaviors, edge cases, and exclusions outlined per layer?
-4. If gaps exist, list them and work through only the missing pieces with the user (don't redo what's already decided).
-5. Once the plan has sufficient coverage, proceed to Phase 3.
+1. Read `.claude/plan.md`. If it doesn't exist, fall through to Phase 1.
+2. Summarize key decisions and ask user to confirm before proceeding.
+3. Check whether the plan covers Phases 1–3 (affected layers identified, decision records present).
+4. If gaps exist, work through only the missing pieces.
+5. Proceed to Phase 4, then Phase 5 (Confirm).
 
-### Phase 1: Understand
-1. Identify users, interactions, and benefits
-2. Determine storage, scalability, and interactivity needs
+### Phase 1: Clarify (main session)
+Ask up to 3–5 targeted questions: scope, affected users, key constraints. No codebase exploration yet.
 
-### Phase 2: Architecture
-Start with storage -> backend -> frontend, but adapt the order based on the feature. If a UI-first approach makes more sense, start there.
+Goal: identify which layers are touched (DB, backend, frontend) and what the feature must accomplish. State the affected layers and proceed.
 
-For each layer:
-1. **Explore the existing codebase** — read relevant files, schemas, patterns, and conventions already in use
-2. **Augment-first check** — before proposing anything new, explicitly ask: can this be accomplished by extending an existing service, endpoint, UI element, or other abstraction? State your answer before presenting alternatives. Only introduce new abstractions when existing ones genuinely cannot be extended without degrading them.
-3. Ask clarifying questions about needs (simplicity, maintainability, performance, extensibility)
-4. Identify canonical approaches and alternatives
-5. When choosing between 2+ non-trivial approaches, create a forked, foreground sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. If only one viable approach exists, state it directly.
-6. Present the chosen approach (fork verdict or direct recommendation) to the user and confirm before moving to the next layer
-7. **Define test cases** — before moving on, outline what should be tested for this layer:
-   - What behaviors and outcomes should the tests verify?
-   - What edge cases and error conditions matter?
-   - What should NOT be tested (implementation details, framework internals)?
-   - Confirm test cases with the user alongside the design choice
+### Phase 2: Explore (parallel Explore sub-agents)
+Spawn one Explore sub-agent per affected layer in a **single message**. Skip layers with no changes.
 
-If a decision at any layer has implications for a previously confirmed layer, surface the conflict and revisit.
+Each agent returns:
+- Concrete file paths to create or modify
+- Existing patterns to reuse (file:function references)
+- Potential conflicts with adjacent code
 
-**Why test cases during design?** Defining tests before implementation prevents bias — tests should verify intended outcomes, not justify how the code was written. This also surfaces unclear requirements early (if you can't describe the test, the requirement isn't clear enough).
+Main session collects outputs and does NOT explore itself.
 
-### Phase 3: Implementation Plan
-1. Integrate confirmed layer designs into an end-to-end solution
-2. Create detailed plan with phases and task checklists
-3. Each phase must include a **Test** section listing the test cases confirmed in Phase 2
-4. Write to `plans/<feature>/implementation-plan.md`
+### Phase 3: Architecture decisions (sequential Plan sub-agents, bottom-up)
 
-### Phase 4: Codex Design Review
-1. Check `which codex`. If not installed, log "Codex design review skipped — codex CLI not installed" and proceed to Next Step.
-2. Use the `ccupa:codex-review` skill (loaded in your context) to construct the full **design review** command (substitute the actual feature path for `<feature>`). Run it and capture the output.
-3. Present Codex's findings to the user.
-4. If findings warrant changes, revise the implementation plan and update the file.
-5. Present the final plan to the user for confirmation before proceeding.
+Decisions cascade: DB schema → RPC signatures → API contracts → UI. Run one Plan sub-agent per affected layer in order. Each receives only: (a) its layer's exploration output from Phase 2, and (b) the compact decision record from the layer above.
+
+**DB/schema architect** (Plan sub-agent)
+- Proposes table/column/migration design and RPC signatures
+- When a non-trivial trade-off arises: return options to main session with pros/cons; user decides; feed decision back
+- Returns compact DB decision record: table names, column types, RPC function signatures — no prose
+
+**API/backend architect** (Plan sub-agent)
+- Input: API exploration + DB decision record
+- Proposes endpoint shapes, auth requirements, service logic; surfaces trade-offs to main session
+- Returns compact API decision record: endpoint paths, request/response shapes, key invariants
+
+**Frontend architect** (Plan sub-agent — only if frontend changes)
+- Input: frontend exploration + API decision record
+- Proposes component structure, state management, data-fetching approach; surfaces trade-offs
+- Returns compact frontend decision record
+
+Main session accumulates only the compact decision records (~10–20 lines each).
+
+### Phase 4: Task decomposition + plan synthesis (Plan sub-agent)
+Spawn one Plan sub-agent with all decision records + Phase 1 constraints.
+
+It decomposes the work into task blocks using the task definition:
+
+> **A task is the largest independent unit of work that accomplishes a verifiable behavioral contract. Its commit message does not require "and".**
+
+Each task block:
+```markdown
+## Task <N>: <short title>
+
+- **Description**: What to implement and the behavioral contract it fulfills
+- **Success criteria**: Testable outcome
+- **Primary files**: Known files to create/modify (agent may touch others as needed)
+- **Patterns to follow**: file:function references
+- **Depends on**: Task IDs (empty = independent)
+- **Test**: Test file + assertion description
+```
+
+Maps `Depends on` relationships across tasks. Writes the draft plan to `plans/<feature>/implementation-plan.md`.
+
+### Phase 5: Confirm (main session)
+Present task list + key decisions to the user. Ask for approval or amendments.
+
+If amendments: update the affected decision record(s) and re-run Phase 4 only — do not redo exploration or architecture for unaffected layers.
 
 ## Approach
-- Be direct and intellectually honest
 - Call out tech debt, feature creep, and over-engineering
+- Augment-first: extend existing services, endpoints, and UI elements before introducing new abstractions
 
 ## Next Step
 Use `/implement` to execute the implementation plan.

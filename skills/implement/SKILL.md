@@ -1,104 +1,79 @@
 ---
-description: "Execute implementation plan with parallel or sequential agents"
+description: "Execute implementation plan as task-batched parallel sub-agents"
 disable-model-invocation: true
 ---
 
 # Feature Implementation
 
-You are a methodical development partner who executes implementation plans, choosing between sequential or parallel execution based on scope.
-
-**Autonomy principle:** Execute the plan end-to-end without stopping to ask questions. The plan was already reviewed and approved during `/design`. Your job is to execute it, not to re-confirm decisions. Only stop for user input when something is genuinely ambiguous or blocked — never for routine choices the plan already answers. Recommend `acceptEdits` mode if not already active — it auto-approves file operations while the permission preflight covers the Bash commands needed for tests and quality checks.
+**Autonomy principle:** Execute the plan end-to-end without stopping. The plan was approved during `/design` — only stop when something is genuinely blocked. Recommend `acceptEdits` mode if not active.
 
 ## Input
-"$ARGUMENTS" - If empty, ask what feature to implement. Otherwise, use as starting point. Pass `--current-branch` to skip branch creation and use the current branch as-is.
+"$ARGUMENTS" - If empty, ask what feature to implement. Pass `--current-branch` to skip branch creation.
 
 ## Process
 
-### Step 1: Prepare
+### Step 1: Setup (main session)
 
-#### Plan and branch
+#### Branch
 If `--current-branch` is in `$ARGUMENTS`:
 1. Record the current branch name — verify it is NOT `main` (abort if so)
-2. Configure sandbox auto-allow: run `/sandbox`
-3. Rename the session to the branch name: run `/rename <branch>`
+2. Run `/sandbox` then `/rename <branch>`
 
 Otherwise:
-1. Verify the current branch is `main`; if not, prompt the user to switch before continuing.
+1. Verify current branch is `main`; prompt user to switch if not.
 2. Choose a branch name (max 3 hyphenated words)
-3. Check for collisions: `git branch --list <branch>`. If already taken, generate a different name and repeat until a free name is found — do not ask the user or reuse the existing branch unless explicitly instructed to.
-4. Create and switch to the branch: `git checkout -b <branch>`
-5. Configure sandbox auto-allow: run `/sandbox`
-6. Rename the session to the branch name: run `/rename <branch>`
+3. Check for collisions: `git branch --list <branch>`. If taken, generate a new name — do not ask the user.
+4. `git checkout -b <branch>`, then run `/sandbox` and `/rename <branch>`
 
-#### Classify work
-1. Read the implementation plan (from `plans/<feature>/implementation-plan.md` if it exists, or user-provided context) — each phase should include a **Test** section from `/design`
-2. Classify which layers have meaningful work (refer to your project structure for paths):
-    - **DB**: Schema changes, migration files, database functions
-    - **Backend**: API endpoints, business logic, backend tests
-    - **Frontend**: Components, hooks, UI, frontend tests
-3. Extract the exact test and quality commands for each side (backend/frontend) from the project's CLAUDE.md or Essential Commands section
-4. Choose execution mode:
-    - **2+ independent layers with clear contracts** -> Step 2a (parallel)
-    - **Single layer or tightly coupled changes** -> Step 2b (sequential)
-5. State the chosen mode and rationale, then proceed immediately — do not ask for confirmation
-6. Run permission preflight (`skills/permissions/preflight.md`). Dynamic patterns are the test and quality commands from item 3.
+#### Prepare
+1. Read `plans/<feature>/implementation-plan.md` (or user-provided context)
+2. Extract exact test and quality commands from the project's CLAUDE.md
+3. Run permission preflight (`skills/permissions/preflight.md`) with test/quality commands as dynamic patterns
+4. Build dependency graph: sort tasks into ordered batches where each batch contains all tasks whose `Depends on` are satisfied by prior batches
 
-### Step 2a: Parallel Implementation (large features)
-Create a team named `implement` and spawn fresh teammates in a **single message**:
+### Step 2: Execute batches
 
-| Teammate | Model | Scope | Instructions |
-|----------|-------|-------|-------------|
-| `db` | Sonnet | Migrations | Create migrations and DB functions per the plan. Apply migration per db-conventions rules. Run migration to verify. |
-| `backend` | Sonnet | Backend source + tests | Implement API endpoints and business logic per the plan. Write backend tests using mocked data. Run tests per coding-standards rules. |
-| `frontend` | Sonnet | Frontend source + tests | Implement UI components and state logic per the plan. Write frontend tests with mocked API calls. Run tests per coding-standards rules. |
+Repeat for each batch until all tasks are complete:
 
-Skip agents for layers with no work. Each agent follows a **define -> test -> implement** order:
-1. Define interfaces (function signatures, API routes, component props) per the plan
-2. Write tests from the plan's Test section against those interfaces (tests will fail — that's expected)
-3. Implement the logic to make tests pass
-4. Run their layer's tests and fix failures
-5. Report results — does **NOT** commit or run git commands
+1. Spawn one **Sonnet** agent per task in the batch in a **single message**. Each agent receives only:
+   - Its task block (description, success criteria, primary files, patterns to follow, test)
+   - Test and quality commands
+   - Instruction: implement following define → test → implement; run the specified test; report using the output contract below; do NOT commit or touch files outside its task scope
 
-After all agents complete:
-1. **Cross-layer consistency check** — verify function names, field names, and types are consistent across all layers and their tests
-2. If issues found, spawn a fresh, single Sonnet `fixer` teammate with all findings to resolve in one pass
-3. Run `/prep-commit` to verify all checks pass
-4. Commit with format: `<type>: <short-description>`
-5. Shut down team
+2. **Task agent output contract** (enforce in every agent brief):
+   ```
+   STATUS: DONE | BLOCKED
+   EXTRA_FILES: <comma-separated files touched beyond primary files, or none>
+   BLOCKER: <one sentence if BLOCKED, omit if DONE>
+   ```
 
-### Step 2b: Sequential Implementation (smaller features)
-For each implementation plan phase, follow **define -> test -> implement** order:
-1. Define interfaces (function signatures, API routes, component props) for the phase
-2. Write tests from the plan's Test section against those interfaces (tests will fail — that's expected)
-3. Implement the logic to make tests pass
-4. Run relevant tests and fix failures
-5. Mark phase tasks complete in plan
-6. Run `/prep-commit` to verify all checks pass
-7. Commit with format: `<type>: <short-phase-description>`
+3. Wait for all agents in the batch to report.
 
-### Step 3: Verify Completeness
-After all implementation (parallel or sequential):
-1. Re-read `plans/<feature>/implementation-plan.md`
-2. Walk through every phase, task, and requirement in the plan
-3. For each item, classify as:
-   - **Implemented** — code exists and tests pass
-   - **Deferred** — intentionally postponed (note why)
-   - **Descoped** — removed during implementation (note why)
-   - **Missing** — should have been done but wasn't
-4. Present the verification summary to the user
-5. If any items are **Missing**, ask the user whether to implement now or defer
-6. Implement or defer as directed, then re-verify until no items are Missing
+4. If any agent reports `BLOCKED`: surface the issue in main session, amend the plan task block, re-spawn only that agent.
 
-### Step 4: Finalize
-1. Hygiene checks:
-   - Ensure schema files reflect any database changes
-   - Clean up migration scripts if used
-   - Update docs if needed
-2. Run `/prep-pr` to verify the branch is ready for PR
-3. Archive the plan: `mv plans/<feature>/ tmp/<feature>/`
+5. When batch completes clean, commit per task sequentially. For each task in the batch:
+   - Stage primary files + any extra files the agent reported
+   - Commit: message derived from the task's description and success criteria
+
+### Step 3: Cross-task consistency check (Sonnet sub-agent)
+
+After all batches complete, spawn one Sonnet sub-agent. It reads the full `git diff` and plan task list, then checks:
+- Schema referenced in downstream tasks matches what was created
+- API shapes match frontend consumption
+- No duplicate implementations
+
+Reports `CONSISTENT` or lists specific drift items with file references.
+
+If drift: spawn one targeted Sonnet fixer agent per conflict (`ccupa:review-resolver` pattern).
+
+### Step 4: Finalize (main session)
+1. Review the plan and confirm fully implemented.
+2. Archive the plan: `mv plans/<feature>/ plans/.archive/<feature>/`
 
 ## Approach
-- In parallel mode, agents must stay within their layer's file scope
-- All git operations are handled by the lead agent, never by teammates
-- When the lead agent (not teammates) faces a non-trivial implementation decision with 2+ viable approaches before or during sequential Step 2b, create a forked, background sub-agent to evaluate tradeoffs and return a compact verdict: decision + rationale (2–3 sentences) + key tradeoff accepted. Record only the verdict — do not debate inline. In parallel Step 2a, teammates must not fork independently — if a teammate hits a multi-approach decision, it should surface the conflict to the lead agent and pause.
-- **Why teams here?** Unlike prep-commit/prep-pr (pure fan-out), implementation agents may need to coordinate mid-flight when contracts shift — e.g., backend discovers a schema change that affects the DB migration, or frontend needs a different API response shape
+- Task agents must stay within their task's file scope
+- All git operations (staging, committing) stay in the main session — task agents do not commit
+- If the plan is missing, run `/design` first
+
+## Next Step
+`/prep-pr` or `/review-branch` 
