@@ -54,25 +54,35 @@ Spawn fresh agents via the Task tool in a **single message**:
 2. Collect results from every agent
 3. Deduplicate findings — assign each a global ID `{agent-name}:{N}` (e.g., `reviewer:1`), group findings that refer to the same issue.
 4. If all checks passed and reviews found nothing -> skip to **Step 4: Report**
-5. Include test/quality failures from Step 2 as Phase A / Phase B findings respectively.
+5. Include test failures from Step 2 as Phase A inputs; include [CORRECTNESS], [SECURITY], and [QUALITY] review findings from Step 2 as Phase B inputs.
 
-Fix in two sequential phases (max 2 iterations each).
+Fix in three sequential phases. Quality is always last. Since this is the last gate before merging to main, tests must be re-confirmed after every fix phase.
 
-**After each fixer run** — capture touched files: `git diff --name-only` + `git ls-files --others --exclude-standard`, classified by layer. Re-stage: `git add -u` + any new files the fixer created. Exit the phase immediately if the fixer made no changes.
+**After each fixer run** — capture touched files: `git diff --name-only` + `git ls-files --others --exclude-standard`, classified by layer. Re-stage: `git add -u` + any new files the fixer created.
 
-**Phase A — Correctness + Security** (test failures + [CORRECTNESS] and [SECURITY] findings):
-- Skip if tests passed and reviewer had no [CORRECTNESS] or [SECURITY] findings
-- Spawn fixer per `ccupa:review-resolver` skill with Phase A findings
-- Re-run: backend tests if fixer touched backend files; frontend tests if fixer touched frontend files; integration tests if fixer touched either; re-run `reviewer` only if fixer ACTED on at least one [CORRECTNESS] or [SECURITY] finding
-- All pass -> commit: `fix: address correctness and security review findings`
-- 2 iterations exhausted -> report remaining failures in Step 4 and stop.
+**Phase A — Tests** (hard cap 10, no lower limit):
+- Skip if all tests passed in Step 2
+- Spawn fixer per `ccupa:review-resolver` with test failures
+- After each fixer run: capture touched files, re-stage, re-run backend/frontend/integration tests for touched layers
+- If fixer makes no changes: report remaining test failures and proceed to Phase B
+- Repeat until all tests pass or hard cap of 10; if hard cap reached, report and proceed to Phase B
 
-**Phase B — Quality** (quality check errors + [QUALITY] findings):
-- Skip if quality agents had no errors and reviewer had no [QUALITY] findings
-- Spawn fixer per `ccupa:review-resolver` skill with Phase B findings
-- Re-run: quality checks only for fixer-touched layers. Do NOT re-run tests.
-- All pass -> commit: `fix: address quality review findings`
-- 2 iterations exhausted -> report remaining in Step 4.
+**Phase B — Reviews** (max 3 iterations):
+- Skip if reviewer had no findings
+- Spawn fixer per `ccupa:review-resolver` with all [CORRECTNESS], [SECURITY], and [QUALITY] findings
+- After each fixer run: capture touched files, re-stage, re-run tests for touched layers (include any new test failures in the next iteration's fixer brief alongside remaining review findings); re-run quality checks for touched layers and note any quality failures for Phase C; re-run reviewer if fixer acted on findings
+- 3 iterations max, then proceed to Phase C
+
+**Phase C — Quality** (hard cap 10, no lower limit, always last):
+- Skip if no quality errors exist (from Step 2 or introduced by Phase B fixes)
+- Spawn fixer per `ccupa:review-resolver` with quality errors
+- After each fixer run: capture touched files, re-stage, re-run quality checks for touched layers; do NOT re-run tests
+- If fixer makes no changes: report remaining and proceed
+- Repeat until clean or hard cap of 10
+
+**Final test check**: After Phase C completes, run one final test run (backend/frontend/integration) to confirm quality fixes did not break anything. If tests fail: report them clearly — do not re-enter the fix loop.
+
+**After all phases**: if any fixes were made across phases A, B, or C, run `/commit --skip-prep` once — let `/commit` group changes into logical commits without prescribed messages.
 
 ### Step 4: Report
 Output a structured summary. `/review-pr` uses this to build the PR comment.

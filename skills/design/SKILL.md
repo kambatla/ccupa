@@ -15,9 +15,9 @@ disable-model-invocation: true
 ### Resume from Plan Mode (`from-plan`)
 1. Read `.claude/plan.md`. If it doesn't exist, fall through to Phase 1.
 2. Summarize key decisions and ask user to confirm before proceeding.
-3. Check whether the plan covers Phases 1–3 (affected layers identified, decision records present).
+3. Check whether the plan covers Phases 1–3, 5, and 6 (affected layers identified, decision records present, E2E tasks added, plan reviewed).
 4. If gaps exist, work through only the missing pieces.
-5. Proceed to Phase 4, then Phase 5 (Confirm).
+5. Proceed to Phase 4, then Phases 5 and 6, then Phase 7 (Confirm).
 
 ### Phase 1: Clarify (main session)
 Ask up to 3–5 targeted questions: scope, affected users, key constraints. No codebase exploration yet.
@@ -76,8 +76,32 @@ Each task block:
 
 Maps `Depends on` relationships across tasks. Writes the draft plan to `plans/<feature>/implementation-plan.md`.
 
-### Phase 5: Confirm (main session)
-Present task list + key decisions to the user. Ask for approval or amendments.
+### Phase 5: E2E Validation Strategy (main session)
+The main session (not a sub-agent) directly appends explicit task blocks to `plans/<feature>/implementation-plan.md`. These use the exact same format as all other tasks (Description, Success criteria, Primary files, Patterns to follow, Depends on, Test).
+
+Add the following task blocks (always required when backend changes exist):
+- One task for integration tests covering the full REST API → service/handler → storage path for each new or changed endpoint.
+
+Add the following task blocks (only when frontend changes exist):
+- One task per page/flow for Chrome plugin verification using `mcp__claude-in-chrome__*` tools.
+
+### Phase 6: Plan Review (Opus sub-agent)
+Spawn one Opus sub-agent (via `Agent` tool, `model: Opus`) from the main session. The sub-agent reads the complete draft plan (including E2E tasks from Phase 5) and returns structured output across five dimensions:
+
+```
+COVERAGE: OK | ISSUES — <details>
+DEPENDENCIES: OK | ISSUES — <details>
+SCOPE: OK | ISSUES — <details>
+FEASIBILITY: OK | ISSUES — <details>
+TESTS: OK | ISSUES — <details>
+```
+
+If any dimension is not OK: re-spawn the Phase 4 Plan sub-agent with all decision records plus the failing dimensions and reviewer issues as additional constraints; it rewrites the plan file in place; re-run Phase 5 to update E2E tasks if affected; then re-invoke the Opus reviewer automatically. Repeat up to 3 iterations total; if still failing after 3, surface the specific failing dimensions to the user and stop.
+
+Proceed to Phase 7 only when all dimensions are OK.
+
+### Phase 7: Confirm (main session)
+Present task list + key decisions + E2E validation plan to the user. Ask for approval or amendments.
 
 If amendments: update the affected decision record(s) and re-run Phase 4 only — do not redo exploration or architecture for unaffected layers.
 
