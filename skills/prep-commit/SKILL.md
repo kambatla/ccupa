@@ -67,21 +67,29 @@ Spawn fresh agents via the Task tool in a **single message**:
 3. Deduplicate findings — assign each raw finding a global ID `{agent-name}:{N}` (e.g., `reviewer:1`), group findings that refer to the same issue (same file+line, or clearly the same bug described differently).
 4. If all checks passed and review found nothing significant -> skip to **Step 4: Report**
 
-Fix in two sequential phases (max 2 iterations each).
+Fix in three sequential phases. Quality is always last so that issues introduced by review fixers are caught.
 
-**After each fixer run** — capture touched files: `git diff --name-only` + `git ls-files --others --exclude-standard`, classified by layer. Re-stage: `git add -u` + any new files the fixer created. Exit the phase immediately if the fixer made no changes.
+**After each fixer run** — capture touched files: `git diff --name-only` + `git ls-files --others --exclude-standard`, classified by layer. Re-stage: `git add -u` + any new files the fixer created.
 
-**Phase A — Correctness** (test failures + reviewer and ext-review findings):
-- Skip if tests passed and both reviewer and ext-review had no findings
-- Spawn fixer per `ccupa:review-resolver` skill with Phase A findings
-- Re-run: backend tests if fixer touched backend files; frontend tests if fixer touched frontend files; re-run reviewer only if fixer ACTED on at least one finding
-- All pass → Phase B. 2 iterations exhausted → report remaining failures in Step 4 and stop.
+**Phase A — Tests** (hard cap 10, no lower limit):
+- Skip if all tests already passed in Step 2
+- Spawn fixer per `ccupa:review-resolver` with test failures
+- After each fixer run: capture touched files, re-stage (`git add -u`), re-run tests for touched layers only
+- If fixer makes no changes: report remaining test failures and proceed to Phase B
+- Repeat until all tests pass or hard cap of 10 is reached; if hard cap reached, report remaining test failures and proceed to Phase B
 
-**Phase B — Quality** (quality check errors):
-- Skip if quality agents found no errors
-- Spawn fixer per `ccupa:review-resolver` skill with Phase B findings
-- Re-run: quality checks only for fixer-touched layers. Do NOT re-run tests.
-- All pass → exit. 2 iterations exhausted → report remaining in Step 4.
+**Phase B — Reviews** (max 2 iterations):
+- Skip if both reviewer and ext-review had no findings
+- Spawn fixer per `ccupa:review-resolver` with review findings
+- After each fixer run: capture touched files, re-stage, re-run tests for touched layers (review fixes can break tests — include any new test failures in the next iteration's fixer brief alongside remaining review findings); re-run reviewer only if fixer acted on at least one finding
+- 2 iterations max, then proceed to Phase C
+
+**Phase C — Quality** (hard cap 10, no lower limit, always last):
+- Skip if all quality agents reported CLEAN in Step 2 and no new quality issues were introduced by Phase B fixes
+- Spawn fixer per `ccupa:review-resolver` with quality errors
+- After each fixer run: capture touched files, re-stage, re-run quality checks for touched layers only; do NOT re-run tests
+- If fixer makes no changes: report remaining quality errors and proceed to Step 4
+- Repeat until all quality checks are clean or hard cap of 10 is reached; if hard cap reached, report remaining and proceed to Step 4
 
 ### Step 4: Report
 Report: what was checked, issues found and fixed, confirmation all checks pass. Do NOT run `/commit`.
