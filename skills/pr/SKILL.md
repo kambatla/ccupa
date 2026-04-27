@@ -6,7 +6,7 @@ disable-model-invocation: true
 # Create Pull Request
 
 ## Input
-"$ARGUMENTS" - Optional context about the PR.
+"$ARGUMENTS" - Optional context about the PR. Pass `--skip-prep` to bypass the `/prep-pr` prerequisite check.
 
 ## Execution
 Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
@@ -18,8 +18,13 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 ## Process
 
-0. **Prerequisites:** confirm `/prep-pr` was run in this conversation. If not, stop:
-   > Run `/prep-pr` first, then re-run `/pr`.
+0. **Prerequisites:**
+   1. If `--skip-prep` is in `$ARGUMENTS` → skip prerequisite check
+   2. `BRANCH=$(git rev-parse --abbrev-ref HEAD)`
+   3. Check `.ccupa/$BRANCH/prep-pr` exists; if missing → hard stop:
+      > Run `/prep-pr` first, then re-run `/pr`.
+   4. `find . -newer .ccupa/$BRANCH/prep-pr -not -path './.git/*' -not -path './.ccupa/*'`; if any results → warn:
+      > Changes made since last `/prep-pr` — re-run `/prep-pr` or pass `--skip-prep`.
 
 1. **Review branch:**
    - `git log main..HEAD --oneline`
