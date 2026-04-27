@@ -32,10 +32,13 @@ Run as a Haiku sub-agent — this is a leaf workflow with no further sub-agents.
 1. Run `/sync-rules` to copy ccupa convention rules into the project's `.claude/rules/` directory
 2. Report which rules were synced and any CLAUDE.md overlap findings
 
-### Step 4: Bootstrap Settings
+### Step 4: Update .gitignore
+1. Check if `.gitignore` contains `.ccupa/` — if not, append it at the bottom (create `.gitignore` if absent)
+
+### Step 5: Bootstrap Settings
 1. Discover test and quality commands from the project's `CLAUDE.md` (Essential Commands section or equivalent)
 2. Run the preflight procedure (`skills/permissions/preflight.md`) with the discovered commands as dynamic patterns
 3. Present discovered patterns and offer to write `.claude/settings.local.json`
 
-### Step 5: Report
+### Step 6: Report
 Summarize what was added.

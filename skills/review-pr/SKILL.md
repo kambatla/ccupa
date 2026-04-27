@@ -35,5 +35,10 @@ EOF
 ### Step 3: Report
 Report: link to the PR comment, any unfixed issues remaining.
 
+After reporting, write state:
+```bash
+BRANCH=$(git rev-parse --abbrev-ref HEAD) && mkdir -p .ccupa/$BRANCH && touch .ccupa/$BRANCH/review-pr
+```
+
 ## Note
 Fix commits pushed by the review loop can re-trigger CI. Consuming projects should guard against recursive triggers (e.g., skip CI if commit message matches `fix: address * review findings`).
