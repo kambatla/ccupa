@@ -17,8 +17,13 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 
 ## Process
 
-0. **Prerequisites:** if `--skip-prep` is NOT in `$ARGUMENTS`, confirm `/prep-commit` was run in this conversation. If not, stop:
-   > Run `/prep-commit` first, or pass `--skip-prep` to commit without it.
+0. **Prerequisites:**
+   1. If `--skip-prep` is in `$ARGUMENTS` → skip prerequisite check
+   2. `BRANCH=$(git rev-parse --abbrev-ref HEAD)`
+   3. Check `.ccupa/$BRANCH/prep-commit` exists; if missing → hard stop:
+      > Run `/prep-commit` first, or pass `--skip-prep` to commit without it.
+   4. `find . -newer .ccupa/$BRANCH/prep-commit -not -path './.git/*' -not -path './.ccupa/*'`; if any results → warn:
+      > Changes made since last `/prep-commit` — re-run `/prep-commit` or pass `--skip-prep`.
 
 1. **Inspect state:**
    - `git status`, `git diff`, `git diff --staged`
