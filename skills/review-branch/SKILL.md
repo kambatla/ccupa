@@ -54,6 +54,7 @@ Spawn fresh agents via the Task tool in a **single message**:
 2. Collect results from every agent
 3. Deduplicate findings — assign each a global ID `{agent-name}:{N}` (e.g., `reviewer:1`), group findings that refer to the same issue.
 4. If all checks passed and reviews found nothing -> skip to **Step 4: Report**
+5. Include test failures from Step 2 as Phase A inputs; include [CORRECTNESS], [SECURITY], and [QUALITY] review findings from Step 2 as Phase B inputs.
 
 Fix in three sequential phases. Quality is always last. Since this is the last gate before merging to main, tests must be re-confirmed after every fix phase.
 
