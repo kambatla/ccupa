@@ -97,3 +97,8 @@ Output a structured summary. `/review-pr` uses this to build the PR comment.
 - **Quality:** {CLEAN/errors with details}
 - **Unfixed:** {list of remaining issues, or "None"}
 ```
+
+After reporting, write state:
+```bash
+BRANCH=$(git rev-parse --abbrev-ref HEAD) && mkdir -p .ccupa/$BRANCH && touch .ccupa/$BRANCH/review-branch
+```

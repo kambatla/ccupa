@@ -85,3 +85,8 @@ Fix in two sequential phases (max 2 iterations each).
 
 ### Step 4: Report
 Report: what was checked, issues found and fixed, confirmation all checks pass. Do NOT run `/commit`.
+
+After reporting, write state:
+```bash
+BRANCH=$(git rev-parse --abbrev-ref HEAD) && mkdir -p .ccupa/$BRANCH && touch .ccupa/$BRANCH/prep-commit
+```

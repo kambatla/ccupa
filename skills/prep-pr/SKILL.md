@@ -55,3 +55,8 @@ Fix in two sequential phases (max 3 iterations each).
 
 ### Step 4: Report
 Report: all branch changes, issues found and fixed, confirmation that full test suites and quality checks pass. Do not create the PR.
+
+After reporting, write state:
+```bash
+BRANCH=$(git rev-parse --abbrev-ref HEAD) && mkdir -p .ccupa/$BRANCH && touch .ccupa/$BRANCH/prep-pr
+```
