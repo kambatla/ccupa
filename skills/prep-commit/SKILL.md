@@ -58,8 +58,7 @@ Spawn fresh agents via the Task tool in a **single message**:
 | `frontend-tests` | Haiku | Run this exact command from the project root: `{exact test command for changed files}`. After it completes, you must output results — do not go idle. Report: **PASS** if all tests passed, or **FAIL** with the specific failing test names and error messages. Do NOT fix code or explore the codebase. | No frontend changes |
 | `backend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (formatter output, `--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No backend changes |
 | `frontend-quality` | Haiku | Run this exact command from the project root: `{exact quality commands}`. Auto-fix what the tools can fix automatically (`--fix` flags). After all commands complete, you must output results — do not go idle. Report: what was auto-fixed (if anything) and remaining errors that require manual fixes, or **CLEAN** if none. Do NOT explore the codebase beyond these commands. | No frontend changes |
-| `reviewer` | Sonnet | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Format findings per the **Finding Format** section above. Do NOT fix code. | Never skip |
-| `ext-review` | Sonnet | Invoke external review per `ccupa:gemini-review` skill (fallback to `ccupa:codex-review` if gemini is unavailable). Pass `git diff --cached` as the diff. Format findings per the **Finding Format** section above. | Skip if neither gemini nor codex CLI is installed |
+| `reviewer` | Opus | First read `git log --oneline -10` and the branch name (`git rev-parse --abbrev-ref HEAD`) to understand the intent of this work. Then review `git diff --cached` with that intent as context. Look for bugs, logic errors, security issues, missing edge cases. Flag changes that contradict or drift from the stated intent. Format findings per the **Finding Format** section above. Do NOT fix code. | Never skip |
 
 ### Step 3: Fix-Verify Loop
 1. Re-stage changes: `git add -u`
@@ -79,7 +78,7 @@ Fix in three sequential phases. Quality is always last so that issues introduced
 - Repeat until all tests pass or hard cap of 10 is reached; if hard cap reached, report remaining test failures and proceed to Phase B
 
 **Phase B — Reviews** (max 2 iterations):
-- Skip if both reviewer and ext-review had no findings
+- Skip if reviewer had no findings
 - Spawn fixer per `ccupa:review-resolver` with review findings
 - After each fixer run: capture touched files, re-stage, re-run tests for touched layers (review fixes can break tests — include any new test failures in the next iteration's fixer brief alongside remaining review findings); re-run quality checks for touched layers and note any quality failures for Phase C; re-run reviewer only if fixer acted on at least one finding
 - 2 iterations max, then proceed to Phase C

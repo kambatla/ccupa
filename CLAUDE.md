@@ -110,8 +110,8 @@ When orchestrator workflows spawn sub-agents, match the model to the task:
 
 | Model | Use for |
 |-------|---------|
-| **Opus** | `reviewer` in review-branch and review-pr (full branch diff, security + correctness + quality in one pass) |
-| **Sonnet** | Task agents in `/implement`, architect sub-agents in `/design`, `review-resolver` fixer agents, `reviewer` in prep-commit (small staged diff) |
+| **Opus** | `reviewer` in all review workflows (prep-commit, review-branch, review-pr) |
+| **Sonnet** | Task agents in `/implement`, architect sub-agents in `/design`, `review-resolver` fixer agents |
 | **Haiku** | Test runners, quality/formatting checks |
 
 **Principle:** Use the cheapest model that can do the job well. Opus for reasoning-heavy review. Sonnet for implementation that requires understanding. Haiku for mechanical tasks with clear instructions.
