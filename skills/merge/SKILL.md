@@ -18,8 +18,8 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 ## Process
 
 ### Step 0: Prerequisites
-1. If `--skip-prep` is in `$ARGUMENTS` → skip prerequisite check (steps 2–5 below)
-2. `BRANCH=$(git rev-parse --abbrev-ref HEAD)`
+1. `BRANCH=$(git rev-parse --abbrev-ref HEAD)`
+2. If `--skip-prep` is in `$ARGUMENTS` → skip to step 6 (bypass prerequisite check)
 3. Check if either `.ccupa/$BRANCH/review-pr` or `.ccupa/$BRANCH/review-branch` exists; if neither exists → hard stop:
    > Run `/review-pr` (or `/review-branch`) first, or pass `--skip-prep` to merge without it.
 4. If both files exist, use the newer one as `REVIEW_FILE`; otherwise use whichever exists
@@ -31,7 +31,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
    > You are inside a worktree. Run `/delete-worktree` first, then `git checkout <branch>` in the main checkout, then run `/merge`.
 
 ### Step 1: Rebase on Main
-1. Record the current branch as `BRANCH`; verify it is NOT `main`
+1. Verify `BRANCH` is NOT `main`
 2. `git fetch origin main` — set `dangerouslyDisableSandbox: true` (SSH is blocked by sandbox)
 3. `git rebase origin/main`; resolve any conflicts (ask user if non-trivial)
 
