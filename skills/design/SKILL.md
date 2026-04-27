@@ -17,7 +17,7 @@ disable-model-invocation: true
 2. Summarize key decisions and ask user to confirm before proceeding.
 3. Check whether the plan covers Phases 1–3, 5, and 6 (affected layers identified, decision records present, E2E tasks added, plan reviewed).
 4. If gaps exist, work through only the missing pieces.
-5. Proceed to Phase 4, then Phase 7 (Confirm).
+5. Proceed to Phase 4, then Phases 5 and 6, then Phase 7 (Confirm).
 
 ### Phase 1: Clarify (main session)
 Ask up to 3–5 targeted questions: scope, affected users, key constraints. No codebase exploration yet.

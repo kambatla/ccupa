@@ -51,7 +51,7 @@ Repeat for each batch until all tasks are complete:
 
 4. If any agent reports `BLOCKED`: surface the issue in main session, amend the plan task block, re-spawn only that agent.
 
-5. When batch completes clean, run `/prep-commit` for the batch. Then run `/commit` once for the whole batch, passing the batch's task titles and descriptions as `$ARGUMENTS` in the format `"Task N: title — description"` (newline-separated) so `/commit` can use them as grouping context. Do NOT pass `--skip-prep` — `/prep-commit` already wrote the state marker so `/commit`'s prerequisite check passes normally.
+5. When batch completes clean, run `/prep-commit` for the batch. Then run `/commit` once for the whole batch, passing the batch's task titles and descriptions as `$ARGUMENTS` in the format `"Task N: title — description"` (newline-separated) so `/commit` can use them as grouping context. Do NOT pass `--skip-prep` — `/prep-commit` already wrote the state marker so `/commit`'s prerequisite check passes normally. If `/prep-commit` surfaces unfixable issues, stop and resolve them before running `/commit`.
 
 ### Step 3: Cross-task consistency check (Sonnet sub-agent)
 

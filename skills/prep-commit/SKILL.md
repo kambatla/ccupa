@@ -81,11 +81,11 @@ Fix in three sequential phases. Quality is always last so that issues introduced
 **Phase B — Reviews** (max 2 iterations):
 - Skip if both reviewer and ext-review had no findings
 - Spawn fixer per `ccupa:review-resolver` with review findings
-- After each fixer run: capture touched files, re-stage, re-run tests for touched layers (review fixes can break tests — include any new test failures in the next iteration's fixer brief alongside remaining review findings); re-run reviewer only if fixer acted on at least one finding
+- After each fixer run: capture touched files, re-stage, re-run tests for touched layers (review fixes can break tests — include any new test failures in the next iteration's fixer brief alongside remaining review findings); re-run quality checks for touched layers and note any quality failures for Phase C; re-run reviewer only if fixer acted on at least one finding
 - 2 iterations max, then proceed to Phase C
 
 **Phase C — Quality** (hard cap 10, no lower limit, always last):
-- Skip if all quality agents reported CLEAN in Step 2 and no new quality issues were introduced by Phase B fixes
+- Skip if all quality agents reported CLEAN in Step 2 and Phase B quality re-runs (if any) found no new issues
 - Spawn fixer per `ccupa:review-resolver` with quality errors
 - After each fixer run: capture touched files, re-stage, re-run quality checks for touched layers only; do NOT re-run tests
 - If fixer makes no changes: report remaining quality errors and proceed to Step 4
