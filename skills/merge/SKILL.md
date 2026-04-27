@@ -18,11 +18,16 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
 ## Process
 
 ### Step 0: Prerequisites
-1. If `--skip-prep` is NOT in `$ARGUMENTS`: confirm `/review-pr` or `/review-branch` was run in this conversation. If not, stop:
+1. If `--skip-prep` is in `$ARGUMENTS` → skip prerequisite check (steps 2–5 below)
+2. `BRANCH=$(git rev-parse --abbrev-ref HEAD)`
+3. Check if either `.ccupa/$BRANCH/review-pr` or `.ccupa/$BRANCH/review-branch` exists; if neither exists → hard stop:
    > Run `/review-pr` (or `/review-branch`) first, or pass `--skip-prep` to merge without it.
-2. `git rev-parse --show-toplevel` → save as `CURRENT_PATH`
-3. `git worktree list --porcelain` — read the first `worktree` line → save as `MAIN_PATH`
-4. If `CURRENT_PATH` ≠ `MAIN_PATH`, stop:
+4. If both files exist, use the newer one as `REVIEW_FILE`; otherwise use whichever exists
+5. `find . -newer $REVIEW_FILE -not -path './.git/*' -not -path './.ccupa/*'`; if any results → warn:
+   > Changes made since last review — re-run `/review-pr` or `/review-branch`, or pass `--skip-prep`.
+6. `git rev-parse --show-toplevel` → save as `CURRENT_PATH`
+7. `git worktree list --porcelain` — read the first `worktree` line → save as `MAIN_PATH`
+8. If `CURRENT_PATH` ≠ `MAIN_PATH`, stop:
    > You are inside a worktree. Run `/delete-worktree` first, then `git checkout <branch>` in the main checkout, then run `/merge`.
 
 ### Step 1: Rebase on Main
@@ -37,6 +42,7 @@ For unattended execution, add to `.claude/settings.local.json`. Run `/setup` to 
    - **Single commit:** `git merge --ff`
    - **Multiple commits:** `git merge --no-ff`
 4. `git branch -d <BRANCH>`
+5. `rm -rf .ccupa/$BRANCH/`
 
 ### Step 3: Push to All Remotes
 1. `git remote` — if none, skip to Step 4
