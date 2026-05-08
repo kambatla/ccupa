@@ -26,12 +26,12 @@ Use agents to (a) reduce context usage of the main session and (b) limit confirm
 
 Reduce wall-clock time by running independent workstreams simultaneously.
 
-- `/prep-commit` spawns up to **6 parallel agents**: backend tests, frontend tests, backend quality, frontend quality, code reviewer, and Codex reviewer
+- `/prep-commit` spawns up to **5 parallel agents**: backend tests, frontend tests, backend quality, frontend quality, and code reviewer
 - `/prep-pr` spawns up to **5 parallel agents**: 2 test runners + 1 integration tests + 2 quality checkers
-- `/review-pr` spawns up to **8 parallel agents**: 3 test runners + 2 quality checkers + 3 specialized reviewers (including Codex)
+- `/review-pr` delegates to `/review-branch`, which spawns up to **6 parallel agents**: backend tests, frontend tests, integration tests, backend quality, frontend quality, and code reviewer
 - `/implement` spawns up to **3 parallel agents** (DB, backend, frontend) for features with independent layers
 
-Conditional skipping avoids wasted work: quality agents are skipped if `/prep-commit` already ran them with no code changes since; the security reviewer only spawns when changes touch auth, API, DB, or user input handling; test/quality agents are skipped entirely for unchanged sides.
+Conditional skipping avoids wasted work: quality agents are skipped if `/prep-commit` already ran them with no code changes since; test/quality agents are skipped entirely for unchanged sides.
 
 ### Unattended execution
 
@@ -60,23 +60,25 @@ flowchart LR
     PPRFIX --> PPR_A
     PPR_CHECK -.->|no| PR
   end
- subgraph RPR_FLOW["Review-PR → Merge"]
+ subgraph RPR_FLOW["Review → Merge"]
     direction LR
-    RPR["/review-pr (Opus):<br/>Reviews + verification<br/>before merge"]
-    subgraph RPR_A["↳ spawns in parallel"]
+    RPR["/review-pr (Haiku):<br/>Detect PR, run<br/>/review-branch + post comment"]
+    RB["/review-branch:<br/>Reviews + verification<br/>(standalone or via /review-pr)"]
+    subgraph RB_A["↳ spawns in parallel"]
         direction TB
-        rprT["tests (Haiku):<br/>Full suites +<br/>integration"]
-        rprQ["quality (Haiku):<br/>Lint + auto-fix"]
-        rprR["reviews (Opus + Sonnet + Codex):<br/>Correctness, quality,<br/>security, Codex CLI"]
+        rbT["tests (Haiku):<br/>Full suites +<br/>integration"]
+        rbQ["quality (Haiku):<br/>Lint + auto-fix"]
+        rbR["reviewer (Opus):<br/>Correctness, security,<br/>quality"]
     end
-    RPR_CHECK{issues?}
-    RPRFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → security<br/>→ quality)"]
+    RB_CHECK{issues?}
+    RBFIX["fixer (Sonnet):<br/>Fix findings<br/>(tests → reviews<br/>→ quality)"]
     MRG["/merge (Haiku):<br/>Rebase on main,<br/>merge + clean up"]
-    RPR --> RPR_A
-    RPR_A --> RPR_CHECK
-    RPR_CHECK -->|yes| RPRFIX
-    RPRFIX --> RPR_A
-    RPR_CHECK -.->|no| MRG
+    RPR --> RB
+    RB --> RB_A
+    RB_A --> RB_CHECK
+    RB_CHECK -->|yes| RBFIX
+    RBFIX --> RB_A
+    RB_CHECK -.->|no| MRG
   end
  subgraph PC_FLOW["Prep-Commit → Commit"]
     direction LR
@@ -85,7 +87,7 @@ flowchart LR
         direction TB
         pcT["tests (Haiku):<br/>Scoped test runs"]
         pcQ["quality (Haiku):<br/>Lint + auto-fix"]
-        pcR["reviews (Opus + Codex):<br/>Code review,<br/>Codex CLI"]
+        pcR["reviewer (Opus):<br/>Code review"]
     end
     PC_CHECK{issues?}
     PCFIX["fixer (Sonnet):<br/>Fix findings<br/>(correctness → quality)"]
@@ -129,17 +131,18 @@ flowchart LR
      pcR:::opus
      pprT:::haiku
      pprQ:::haiku
-     rprT:::haiku
-     rprQ:::haiku
-     rprR:::opus
+     rbT:::haiku
+     rbQ:::haiku
+     rbR:::opus
      PC:::skill-opus
      PCFIX:::sonnet
      CMT:::skill-sonnet
      PPR:::skill-sonnet
      PPRFIX:::sonnet
      PR:::skill-haiku
-     RPR:::skill-opus
-     RPRFIX:::sonnet
+     RB:::skill-opus
+     RPR:::skill-haiku
+     RBFIX:::sonnet
      MRG:::skill-haiku
     classDef skill-opus fill:#1e293b,color:#f8fafc,stroke:#6d28d9,stroke-width:2.5px
     classDef skill-sonnet fill:#1e293b,color:#f8fafc,stroke:#1d4ed8,stroke-width:2.5px
@@ -163,7 +166,8 @@ flowchart LR
 | `/commit` | Stage and commit per git conventions |
 | `/prep-pr` | Full test suites + quality checks (gates `/pr`) |
 | `/pr` | Push branch, create PR via `gh` with structured body |
-| `/review-pr` | Code reviews + tests/quality baseline + fix loop; post PR comment (gates `/merge`) |
+| `/review-branch` | Code reviews + tests/quality checks + fix loop; report to conversation (gates `/merge`) |
+| `/review-pr` | Run `/review-branch`, then post results as PR comment (gates `/merge`) |
 | `/merge` | Rebase on main, merge, push to all remotes, clean up merged branches |
 | `/learn` | Session reflection: review permissions, corrections, patterns; propose improvements |
 
