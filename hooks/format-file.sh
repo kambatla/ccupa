@@ -10,7 +10,7 @@ HOOK_INPUT=$(cat)
 command -v jq > /dev/null 2>&1 || exit 0
 
 # Extract file path from hook input
-file_path=$(echo "$HOOK_INPUT" | jq -r '.tool_input.file_path // empty')
+file_path=$(jq -r '.tool_input.file_path // empty' <<< "$HOOK_INPUT")
 
 # Skip if path is empty or file does not exist
 if [[ -z "$file_path" ]] || [[ ! -f "$file_path" ]]; then
