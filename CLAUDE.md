@@ -35,6 +35,7 @@ skills/                        # Skills — reference docs and workflow commands
   commit/                      # Workflow skill (disable-model-invocation: true)
   design/                      # Workflow skill (disable-model-invocation: true)
   implement/                   # Workflow skill (disable-model-invocation: true)
+  implement-light/             # Workflow skill (disable-model-invocation: true) — /implement for non-git dirs: checks, no commits
   learn/                       # Workflow skill (disable-model-invocation: true)
   merge/                       # Workflow skill (disable-model-invocation: true)
   pr/                          # Workflow skill (disable-model-invocation: true)
@@ -77,6 +78,8 @@ The workflow skills form a feature development pipeline:
 
 **Alternate path (no PR):** `/review-branch` — same review+fix workflow as `/review-pr` but no PR required; reports to conversation only. Supersedes `/prep-pr` and `/review-pr` when used. Satisfies the `/merge` prerequisite.
 
+**Alternate path (no source control):** `/implement-light` — same principles as `/implement` (batched parallel agents, consistency check, tests + quality + review with a fix-verify loop) but for directories not under git. No branch, no commits, no `/prep-commit`/`/commit` dependency; scopes checks via the files agents touch instead of `git diff`. Self-contained — the rest of the pipeline (`/prep-commit` onward) assumes git and does not apply.
+
 **Worktree utilities** (optional, used when parallel isolation is needed):
 - `/create-worktree` — Attach a worktree to an existing branch
 - `/delete-worktree` — Remove the worktree, preserve the branch (run before `/merge`)
@@ -100,7 +103,7 @@ Workflow skills follow two patterns based on whether they spawn sub-agents:
 `/commit`, `/pr`, `/merge`, `/setup`, `/sync-rules`, `/create-worktree`, `/delete-worktree`
 
 **Orchestrator workflows** (spawn sub-agents) run **in the current session** to avoid agent nesting:
-`/prep-commit`, `/prep-pr`, `/review-pr`, `/review-branch`, `/implement`, `/bug`, `/brainstorm`, `/design`, `/learn`
+`/prep-commit`, `/prep-pr`, `/review-pr`, `/review-branch`, `/implement`, `/implement-light`, `/bug`, `/brainstorm`, `/design`, `/learn`
 
 **Prerequisite pattern:** `/commit` requires `/prep-commit`; `/pr` requires `/prep-pr`; `/merge` requires `/review-pr` or `/review-branch`. These skills check that their prerequisite was already run in the conversation and refuse to proceed if not — they never auto-trigger the prerequisite themselves, which would cause agent nesting.
 
